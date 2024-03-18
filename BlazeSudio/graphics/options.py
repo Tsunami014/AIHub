@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from doctest import master
 import pygame
 import pygame.freetype
 from string import printable
@@ -73,7 +74,7 @@ class F___:
     def __init__(self, name, size, bold=False, italic=False):
         self.font = pygame.font.SysFont(name, size, bold, italic)
         self.emojifont = pygame.freetype.SysFont('segoeuisymbol', size, bold, italic)
-    def render(self, txt, col, updownweight=SWMID, leftrightweight=SWMID, allowed_width=None, renderdash=True):
+    def render(self, txt, col, updownweight=SWMID, leftrightweight=SWMID, allowed_width=None, renderdash=True, maxlines=None, allowed_height=None, return_output=False):
         """
         Renders some text with emoji support!
 
@@ -94,18 +95,34 @@ class F___:
             The allowed width of the text, by default None
             If the text goes over this amount of pixels, it makes a new line
             None disables it
+        
+        Other parameters:
+        ----------------
         renderdash : bool, optional
             Whether or not to render the '-' at the end of lines of text that are too big to fit on screen, by default True
+        maxlines : int, optional
+            The maximum number of lines to render if the text will be split over newlines, defaults to all of them
+        allowed_height : int, optional
+            The allowed height of the text, by default None
+            If the text's total height is above this, then it stops making more text
+        return_output : bool, optional
+            Whether to return the string as it is shown on screen or not, by default False
+            This will output (for example) "hello I am \nsuuuuuuuuuuuuu-\nuuuper cool"
 
         Returns
         -------
-        pygame.Surface
-            The surface of the text!
+        pygame.Surface | tuple[pygame.Surface, str]
+            The surface of the text! See return_output for the second thing it can return
         """
         if txt == '':
+            if return_output:
+                return pygame.Surface((0, 0)), ''
             return pygame.Surface((0, 0))
         if allowed_width is None:
-            return self.combine(self.split(txt, col), weight=updownweight)
+            out = self.combine(self.split(txt, col), weight=updownweight)
+            if return_output:
+                return out, txt
+            return out
         else:
             masterlines = []
             for l in txt.strip('\n').split('\n'):
@@ -129,14 +146,14 @@ class F___:
                         line = ''
                         for i in line_words[0]:
                             if renderdash:
-                                fw, fh = self.size(line+'--')
+                                fw, fh = self.size(line+'---')
                                 if fw > allowed_width:
                                     out.append(line+'-')
                                     line = i
                                 else:
                                     line += i
                             else:
-                                fw, fh = self.size(line+'-')
+                                fw, fh = self.size(line+'--')
                                 if fw > allowed_width:
                                     out.append(line)
                                     line = i
@@ -146,7 +163,20 @@ class F___:
                         lines.extend(out)
                     lines.append(line)
                 masterlines.extend(lines)
-            return self.combine([self.combine(self.split(i, col), updownweight) for i in masterlines], leftrightweight, SDUPDOWN)
+            
+            surs = []
+            h = 0
+            for i in masterlines[:maxlines]:
+                sur = self.combine(self.split(i, col), updownweight)
+                if allowed_height is not None:
+                    if sur.get_height() + h > allowed_height:
+                        break
+                    h += sur.get_height()
+                surs.append(sur)
+            out = self.combine(surs, leftrightweight, SDUPDOWN)
+            if return_output:
+                return out, '\n'.join(masterlines[:maxlines][:len(surs)])
+            return out
     
     def split(self, txt, col):
         """
@@ -241,6 +271,17 @@ class F___:
         """
         surs = self.split(txt, (0, 0, 0))
         return (sum([i.get_width() for i in surs]), max([i.get_height() for i in surs]))
+    
+    def maxsize(self):
+        """
+        Gets the maximum rendered size of any text, excluding emojis
+
+        Returns
+        -------
+        tuple[int,int]
+            The maximum size this font can ever produce (excluding emojis)
+        """
+        return self.font.render(printable, 1, (0, 0, 0)).get_size()
 
 class FNEW(F___): pass # Making new fonts
 

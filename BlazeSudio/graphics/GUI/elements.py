@@ -142,7 +142,16 @@ class InputBox:
         if txt == '':
             txt = self.blanktxt
             txtcol = GO.CINACTIVE
-        self.txt_surface = self.font.render(txt, txtcol, allowed_width=(None if self.resize == GO.RWIDTH else self.rect.w - 5))
+        self.txt_surface, outtxt = self.font.render(
+            txt.strip('\n'), 
+            txtcol, 
+            allowed_width=(None if self.resize == GO.RWIDTH else (self.rect.w - 5)), 
+            renderdash=self.resize != GO.RNONE,
+            allowed_height=((self.rect.h - 5) if self.resize == GO.RNONE else None), 
+            return_output=True
+        )
+        if self.text != '' and self.resize == GO.RNONE:
+            self.text = outtxt
         if self.resize == GO.RWIDTH:
             self.rect.w = self.txt_surface.get_width() + 10
         elif self.resize == GO.RHEIGHT:
@@ -176,8 +185,10 @@ class InputBox:
         # Blit the rect.
         pygame.draw.rect(screen, self.colour, self.rect, 2)
     
-    def update(self, sur):
+    def update(self, sur, events):
         self.draw(sur)
+        for event in events:
+            self.handle_event(event)
 
 class NumInputBox:
     def __init__(self, x, y, w, h, resize=GO.RWIDTH, start=0, max=float('inf'), min=float('-inf'), font=GO.FSMALL):
@@ -191,14 +202,24 @@ class NumInputBox:
         self.render_txt()
     
     def get(self):
+        # remove any accidental extra -'s
         if self.num.startswith('-'):
-            self.num = '-' + self.num.strip('-') # remove any accidental extra -'s
-        self.num = str(min(max(int(self.num), self.bounds[0]), self.bounds[1]))
+            self.num = '-' + self.num.strip('-')
+        if self.num.endswith('-'):
+            self.num = ('-' if self.num.startswith('-') else '') + self.num.strip('-')
+        self.num = str(max(min(int(self.num), self.bounds[0]), self.bounds[1]))
         return int(self.num)
     
     def render_txt(self):
         self.get()
-        self.txt_surface = self.font.render(self.num, self.colour, allowed_width=self.rect.w - 5, renderdash=False)
+        self.txt_surface, self.num = self.font.render(
+            self.num.strip('\n'), 
+            self.colour, 
+            allowed_width=(None if self.resize == GO.RWIDTH else (self.rect.w - 5)), 
+            renderdash=False, 
+            allowed_height=((self.rect.h - 5) if self.resize == GO.RNONE else None), 
+            return_output=True
+        )
         if self.resize == GO.RWIDTH:
             self.rect.w = self.txt_surface.get_width() + 10
         elif self.resize == GO.RHEIGHT:

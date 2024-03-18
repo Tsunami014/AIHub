@@ -22,9 +22,11 @@ def handle_events():
 
 def update(f, **kwargs):
     outkws = {}
+    lows = [i.lower() for i in kwargs.keys()]
+    its = [i[1] for i in kwargs.items()]
     for name, param in inspect.signature(f).parameters.items():
-        if name.lower() in kwargs.keys():
-            outkws[name] = kwargs[name.lower()]
+        if name.lower() in lows:
+            outkws[name] = its[lows.index(name.lower())]
     f(**outkws)
 
 _BLANKFUNC = lambda *args, **kwargs: None
@@ -33,14 +35,14 @@ class Thing:
     def __init__(self, obj):
         self.obj = obj
     
-    def update_obj(self, events, G, mousePos=None, func=_BLANKFUNC):
+    def update_all(self, events, G, mousePos=None, func=_BLANKFUNC):
         if mousePos is None:
             mousePos = pygame.mouse.get_pos()
         update(self.obj.update, win=G.WIN, sur=G.WIN, pause=G.pause, mousePos=mousePos, events=events, G=G, func=func)
 
     def update(self, win, pause, mousePos, events, G, func):
-        '''DO NOT CALL THIS FUNCTION IN YOUR CODE: INSTEAD USE `Thing.update_obj()`
-           (I mean, you *can* use this, but `update_obj()` requires less kwargs, so use that for simplicity)'''
+        '''DO NOT CALL THIS FUNCTION IN YOUR CODE: INSTEAD USE `Thing.update_all()`
+           (I mean, you *can* use this, but `update_all()` requires less kwargs, so use that for simplicity)'''
         update(self.obj.update, win=win, sur=win, pause=pause, mousePos=mousePos, events=events, G=G, func=func)
 
 class Stuff:

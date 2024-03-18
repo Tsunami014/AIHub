@@ -222,10 +222,26 @@ def GToastDemo():
 
 def GInputBoxDemo():
     import pygame as pg
-    from BlazeSudio.graphics.GUI import InputBox
-    screen = pg.display.set_mode((640, 480))
-    input_box = InputBox(100, 100, 140, 32, 'type here!')
-    print('output:', input_box.interrupt(screen))
+    from BlazeSudio.graphics.GUI import InputBox, NumInputBox
+    from BlazeSudio.graphics import Stuff, CustomGraphic, handle_events
+    from BlazeSudio.graphics.options import RHEIGHT, RNONE
+    win = pg.display.set_mode((640, 480))
+    G = CustomGraphic(win)
+    r = True
+    s = Stuff({'IBS': [
+        InputBox(0, 0, 140, 32),
+        InputBox(0, 40, 250, 32, RHEIGHT, placeholder='Some nice TEXT'),
+        InputBox(0, 120, 140, 32, RNONE, starting_text='HI'),
+        NumInputBox(0, 160, 140, 32, max=10, min=-20),
+        NumInputBox(0, 200, 250, 32, start=30),
+        InputBox(0, 240, 140, 32, RHEIGHT, maxim=200),
+    ]})
+    while r:
+        win.fill((255, 255, 255))
+        evs, r = handle_events()
+        s.update_all(evs, G)
+        pg.display.update()
+    print('outputs:', [ib.get() for ib in s.get()])
     pg.quit()
 
 def GColourPickDemo():
@@ -249,7 +265,7 @@ def GColourPickDemo():
             cp.pos = (mp[0]-cp.size//2, mp[1]-cp.size//2)
 
         window.fill(0)
-        cp.update_obj(evs, G)
+        cp.update_all(evs, G)
         pygame.display.flip()
         
     pygame.quit()
