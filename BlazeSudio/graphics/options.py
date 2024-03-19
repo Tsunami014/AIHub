@@ -29,11 +29,14 @@ def Base(cls=None, default=True, modify_str=True):
 # Colours
 @Base(default=False, modify_str=False)
 class C___(tuple):
-    def __init__(self, colourtuple, name='C___'):
+    def __init__(self, colourtuple: tuple[int,], name='None'):
         self.name = name
     def __str__(self):
         return f'<GO.C{self.name} col=({str(list(self))[1:-1]})>'
     def __repr__(self): return str(self)
+
+COLOUR = tuple[int,int,int] | tuple[int,int,int,int] | C___
+
 CTRANSPARENT = C___((255, 255, 255, 1), name='TRANSPARENT')
 CWHITE =  C___((255, 255, 255), name='WHITE')
 CAWHITE = C___((200, 200, 200), name='ALMOSTWHITE')
@@ -43,7 +46,7 @@ CBLUE =   C___((60, 100, 255),  name='BLUE')
 CBLACK =  C___((0, 0, 0),       name='BLACK')
 CYELLOW = C___((255, 200, 50),  name='YELLOW')
 CGREY =   C___((125, 125, 125), name='GREY')
-def CNEW(name):
+def CNEW(name: str) -> C___:
     c = pygame.color.Color(name)
     return C___((c.r, c.g, c.b), name=name)
 CINACTIVE = CNEW('lightskyblue3')
@@ -68,6 +71,7 @@ def CRAINBOW():
 # Weighting
 @Base
 class SW__:
+    """font Side Weighting"""
     w: int
 SWLEFT =  SW__(0,   name='LEFT')
 SWTOP =   SW__(0,   name='TOP')
@@ -77,16 +81,27 @@ SWRIGHT = SW__(1,   name='RIGHT')
 # Direction
 @Base
 class SD__:
+    """font Side Direction"""
     idx: int
 SDLEFTRIGHT = SD__(0, name='LEFT-RIGHT')
 SDUPDOWN =    SD__(1, name='UP-DOWN')
 
 # Fonts
 class F___:
-    def __init__(self, name, size, bold=False, italic=False):
+    def __init__(self, name: str, size: int, bold: bool = False, italic: bool = False):
         self.font = pygame.font.SysFont(name, size, bold, italic)
         self.emojifont = pygame.freetype.SysFont('segoeuisymbol', size, bold, italic)
-    def render(self, txt, col, updownweight=SWMID, leftrightweight=SWMID, allowed_width=None, renderdash=True, maxlines=None, allowed_height=None, return_output=False):
+    def render(self, 
+               txt: str, 
+               col: COLOUR, 
+               updownweight: SW__ = SWMID, 
+               leftrightweight: SW__ = SWMID, 
+               allowed_width: int = None, 
+               renderdash: bool = True, 
+               maxlines: int = None, 
+               allowed_height: int = None, 
+               return_output: bool = False
+              ) -> pygame.Surface:
         """
         Renders some text with emoji support!
 
@@ -94,12 +109,12 @@ class F___:
         ----------
         txt : str
             The text to render!
-        col : tuple[int,int,int]
+        col : tuple[int,int,int] | GO.C___
             The colour of the text
-        updownweight : GO.SW___, optional
+        updownweight : GO.SW__, optional
             The weight of the text up-down; make the text weighted towards the top, middle, or bottom, by default SWMID
             You probably do not want to change this
-        leftrightweight : GO.SW___, optional
+        leftrightweight : GO.SW__, optional
             The weight of the text left-right, by default SWMID
             This only ever comes into effect if allowed_width is not None and there is enough text to span multiple lines
             You probably want to change this occasionally
@@ -190,7 +205,7 @@ class F___:
                 return out, '\n'.join(masterlines[:maxlines][:len(surs)])
             return out
     
-    def split(self, txt, col):
+    def split(self, txt: str, col: COLOUR) -> list[pygame.Surface]:
         """
         Splits text and renders it!
         This splits text up into 2 different parts:
@@ -233,7 +248,11 @@ class F___:
                 part += i
         return parts
     
-    def combine(self, surs, weight=SWMID, dir=SDLEFTRIGHT):
+    def combine(self, 
+                surs: list[pygame.Surface], 
+                weight: SW__ = SWMID, 
+                dir: SD__ = SDLEFTRIGHT
+               ) -> pygame.Surface:
         """
         Combines multiple surfaces into one!
 
@@ -267,7 +286,7 @@ class F___:
                 pos += i.get_height()
         return sur  
     
-    def size(self, txt):
+    def size(self, txt: str) -> tuple[int,int]:
         """
         Gets the size of the font if you render a certain text!
 
@@ -284,7 +303,7 @@ class F___:
         surs = self.split(txt, (0, 0, 0))
         return (sum([i.get_width() for i in surs]), max([i.get_height() for i in surs]))
     
-    def maxsize(self):
+    def maxsize(self) -> tuple[int,int]:
         """
         Gets the maximum rendered size of any text, excluding emojis
 
@@ -295,7 +314,7 @@ class F___:
         """
         return self.font.render(printable, 1, (0, 0, 0)).get_size()
 
-class FNEW(F___): pass # Making new fonts
+class FNEW(F___): pass # For making new fonts
 
 FTITLE =    F___('Comic Sans MS', 64, True, name='TITLE')
 FCODEFONT = F___('Lucida Sans Typewriter', 16, name='CODE-FONT')
@@ -336,7 +355,13 @@ PSTACKS = {
 
 PIDX = 0 # DO NOT USE UNLESS YOU REALLY KNOW WHAT YOU'RE DOING
 
-def PNEW(stack, func, idx=None, lmr=None, umd=None):
+def PNEW(
+         stack: list[int,int], 
+         func: function, 
+         idx: int = None, 
+         lmr: int[1,0,-1] = None, 
+         umd: int[1,0,-1] = None
+        ) -> P___:
     """
     Create new layouts!
 
@@ -371,7 +396,7 @@ def PNEW(stack, func, idx=None, lmr=None, umd=None):
     PSTACKS[pos] = (stack, func)
     return pos
 
-def PSTATIC(x, y, idx=None):
+def PSTATIC(x: int, y: int, idx: int = None) -> P___:
     """
     Creates a GO.P___ to put stuff at a specific x and y location
 
