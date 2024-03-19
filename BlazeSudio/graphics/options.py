@@ -1,13 +1,25 @@
 from dataclasses import dataclass, field
-from doctest import master
 import pygame
 import pygame.freetype
 from string import printable
 
-# TODO: Modify the __str__ and __repr__ of the class to a name
-def Base(cls=None, default=True):
+def Base(cls=None, default=True, modify_str=True):
     def wrap(clss):
-        return dataclass(clss, unsafe_hash=True, init=default, repr=default)
+        outcls = dataclass(clss, unsafe_hash=True, init=default, repr=default)
+        if modify_str:
+            def newstr(self):
+                letters = str(self.__class__)[len('<class \'.')+len(self.__module__):-5]
+                return f'<GO.{letters}{self.name} object>'
+            outcls.__str__ = newstr
+            outcls.__repr__ = newstr
+            def newinit(func):
+                def func2(self, *args, name='None', doc='', **kwargs):
+                    self.name = name
+                    self.__doc__ = doc
+                    func(self, *args, **kwargs)
+                return func2
+            outcls.__init__ = newinit(outcls.__init__)
+        return outcls
     if cls is None:
         # @Base()
         return wrap
@@ -15,12 +27,12 @@ def Base(cls=None, default=True):
     return wrap(cls)
 
 # Colours
-@Base(default=False)
+@Base(default=False, modify_str=False)
 class C___(tuple):
     def __init__(self, colourtuple, name='C___'):
         self.name = name
     def __str__(self):
-        return f'<C{self.name} col=({str(list(self))[1:-1]})>'
+        return f'<GO.C{self.name} col=({str(list(self))[1:-1]})>'
     def __repr__(self): return str(self)
 CTRANSPARENT = C___((255, 255, 255, 1), name='TRANSPARENT')
 CWHITE =  C___((255, 255, 255), name='WHITE')
@@ -35,7 +47,7 @@ def CNEW(name):
     c = pygame.color.Color(name)
     return C___((c.r, c.g, c.b), name=name)
 CINACTIVE = CNEW('lightskyblue3')
-CACTIVE = CNEW('dodgerblue2')
+CACTIVE =   CNEW('dodgerblue2')
 
 def CRAINBOW():
     l = [
@@ -57,17 +69,17 @@ def CRAINBOW():
 @Base
 class SW__:
     w: int
-SWLEFT =  SW__(0)
-SWTOP =   SW__(0)
-SWMID =   SW__(0.5)
-SWBOT =   SW__(1)
-SWRIGHT = SW__(1)
+SWLEFT =  SW__(0,   name='LEFT')
+SWTOP =   SW__(0,   name='TOP')
+SWMID =   SW__(0.5, name='MIDDLE')
+SWBOT =   SW__(1,   name='BOTTOM')
+SWRIGHT = SW__(1,   name='RIGHT')
 # Direction
 @Base
 class SD__:
     idx: int
-SDLEFTRIGHT = SD__(0)
-SDUPDOWN =    SD__(1)
+SDLEFTRIGHT = SD__(0, name='LEFT-RIGHT')
+SDUPDOWN =    SD__(1, name='UP-DOWN')
 
 # Fonts
 class F___:
@@ -285,10 +297,10 @@ class F___:
 
 class FNEW(F___): pass # Making new fonts
 
-FTITLE =    F___('Comic Sans MS', 64, True)
-FCODEFONT = F___('Lucida Sans Typewriter', 16)
-FFONT =     F___(None, 52)
-FSMALL =    F___(None, 32)
+FTITLE =    F___('Comic Sans MS', 64, True, name='TITLE')
+FCODEFONT = F___('Lucida Sans Typewriter', 16, name='CODE-FONT')
+FFONT =     F___(None, 52, name='FONT')
+FSMALL =    F___(None, 32, name='SMALL')
 
 # Positions
 @Base
@@ -297,16 +309,16 @@ class P___:
     lmr: int | None # Left(0) Middle(1) Right(2)
     umd: int | None # Up(0) Middle(1) Down(2)
 
-PLTOP =    P___(0, 0, 0)
-PLCENTER = P___(1, 0, 1)
-PLBOTTOM = P___(2, 0, 2)
-PCTOP =    P___(3, 1, 0)
-PCCENTER = P___(4, 1, 1)
-PCBOTTOM = P___(5, 1, 2)
-PRTOP =    P___(6, 2, 0)
-PRCENTER = P___(7, 2, 1)
-PRBOTTOM = P___(8, 2, 2)
-PFILL =    P___(9, None, None)
+PLTOP =    P___(0, 0, 0, name='LEFTTOP')
+PLCENTER = P___(1, 0, 1, name='LEFTCENTER')
+PLBOTTOM = P___(2, 0, 2, name='LEFTBOTTOM')
+PCTOP =    P___(3, 1, 0, name='CENTERTOP')
+PCCENTER = P___(4, 1, 1, name='CENTERCENTER')
+PCBOTTOM = P___(5, 1, 2, name='CENTERBOTTOM')
+PRTOP =    P___(6, 2, 0, name='RIGHTTOP')
+PRCENTER = P___(7, 2, 1, name='RIGHTCENTER')
+PRBOTTOM = P___(8, 2, 2, name='RIGHTBOTTOM')
+PFILL =    P___(9, None, None, name='FILL')
 
 # Stacks. Don't use unless you know what you're doing
 PSTACKS = {
@@ -324,8 +336,33 @@ PSTACKS = {
 
 PIDX = 0 # DO NOT USE UNLESS YOU REALLY KNOW WHAT YOU'RE DOING
 
-def PNEW(stack, func, idx=None, lmr=None, umd=None): # To create new layouts
-    # TODO: Make this able to take PRTOP as func and work out the function itself
+def PNEW(stack, func, idx=None, lmr=None, umd=None):
+    """
+    Create new layouts!
+
+    Parameters
+    ----------
+    stack : list[int,int]
+        The stacking of the elements;
+        i.e. will a new element using the same function be placed left of the original, or above it, or...
+        The first element in the list is the x position offset (1, 0 or -1) and the second value is the y (1, 0 or -1)
+    func : function(sizeofscreen: tuple[int,int], sizeofobj: tuple[int,int]); returns tuple[int,int]
+        The function of the layout; returns where to put the element
+    idx : int, optional
+        The ID of the new P___, by default None
+        You probably should never need to use this unless you want to replace an old position with a new one
+    lmr : int, optional
+        Whether this layout goes to the Left of the screen (0), Middle (1), Right (2), or N/A (None), by default None
+        This is optional, and does nothing except help give your new layout some documentation of sorts
+    umd : int, optional
+        The same as above but with Up (0), Middle (1), Down (2), and N/A (None), by default None
+
+    Returns
+    -------
+    GO.P___
+        The output position!
+    """
+    # TODO: Make this able to take an existing P___ as func and work out the function itself
     global PIDX
     if idx == None:
         idx = PIDX
@@ -334,7 +371,25 @@ def PNEW(stack, func, idx=None, lmr=None, umd=None): # To create new layouts
     PSTACKS[pos] = (stack, func)
     return pos
 
-def PSTATIC(x, y, idx=None): # To put an element at a specific x and y location
+def PSTATIC(x, y, idx=None):
+    """
+    Creates a GO.P___ to put stuff at a specific x and y location
+
+    Parameters
+    ----------
+    x : int
+        The x position of where to put the element
+    y : int
+        The y position of where to put the element
+    idx : int, optional
+        The ID of the new P___, by default None
+        You probably should never need to use this unless you want to replace an old position with a new one
+
+    Returns
+    -------
+    GO.P___
+        The output position!
+    """
     global PIDX
     if idx == None:
         idx = PIDX
@@ -347,30 +402,28 @@ def PSTATIC(x, y, idx=None): # To put an element at a specific x and y location
 @Base
 class E___:
     idx: int
-    doc: str
     passed: dict = field(default_factory=dict)
 
-EFIRST =        E___(0, 'The first event, before the screen has even displayed it\'s first frame')
-ELOADUI =       E___(1, 'Every time it loads the UI (first, when G.Refresh, etc.) it calls this function.')
-ETICK =         E___(2, 'Each tick this is ran')
-EELEMENTCLICK = E___(3, 'When an element is clicked, this is ran', {'element': 'The element that got clicked'})
-EEVENT =        E___(4, 'When a pygame event occurs (click mouse, press button, etc.)', {'element': 'The pygame.event.Event that occured'})
-ELAST =         E___(5, 'Just before quitting this is ran', {'aborted': 'Whether or not the graphic screen was aborted due to G.Abort()'})
+EFIRST =        E___(0, name='FIRST',  doc='The first event, before the screen has even displayed it\'s first frame')
+ELOADUI =       E___(1, name='LOADUI', doc='Every time it loads the UI (first, when G.Refresh, etc.) it calls this function.')
+ETICK =         E___(2, name='TICK',   doc='Each tick this is ran')
+EELEMENTCLICK = E___(3, name='ELEMENTCLICK', doc='When an element is clicked, this is ran', passed={'element': 'The element that got clicked'})
+EEVENT =        E___(4, name='EVENT',  doc='When a pygame event occurs (click mouse, press button, etc.)', passed={'element': 'The pygame.event.Event that occured'})
+ELAST =         E___(5, name='LAST',   doc='Just before quitting this is ran', passed={'aborted': 'Whether or not the graphic screen was aborted due to G.Abort()'})
 
 # Types
 @Base
 class T___:
     idx: int
-    name: str
-TBUTTON =   T___(0, 'Button'  )
-TTEXTBOX =  T___(1, 'Textbox' )
-TINPUTBOX = T___(2, 'Inputbox')
-TSWITCH =   T___(3, 'Switch'  )
+TBUTTON =   T___(0, name='BUTTON')
+TTEXTBOX =  T___(1, name='TEXTBOX')
+TINPUTBOX = T___(2, name='INPUTBOX')
+TSWITCH =   T___(3, name='SWITCH')
 
 # Resizes
 @Base
 class R___:
     idx: int
-RWIDTH =  R___(0)
-RHEIGHT = R___(1)
-RNONE =   R___(2)
+RWIDTH =  R___(0, name='WIDTH')
+RHEIGHT = R___(1, name='HEIGHT')
+RNONE =   R___(2, name='NONE')
