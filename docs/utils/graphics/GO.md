@@ -66,16 +66,16 @@ lambda size, sizeofobj: (0, 0)
 This is a very simple, it ignores the first 2 params and just positions the element Top Left of the screen.
 
 #### Another way to do it
-Another way to do this is by taking a previously existing function and using it. You can find the function at `GO.PSTACKS[<INSERTPOSITION>][1]`
+Another way to do this is by taking a previously existing function and using it! Just insert it into the function like normal
 
-E.g. if you wanted a center of the screen position but stack it to the right, you can for your function put in `GO.PSTACKS[GO.PCCENTER][1]`
+E.g. if you wanted a center of the screen position but stack it to the right, you can for your function put in `GO.PNEW([1, 0], GO.PCCENTER)`
 
 ### WARNING
 This can interfere with other pre-existing positions.
 
 Let's say you have made a new position which is the center position but stacking to the left.
 ```py
-GO.PNEW([-1, 0], GO.PSTACKS[GO.PCCENTER][1])
+GO.PNEW([-1, 0], GO.PCCENTER)
 ```
 So if you made 2 elements it would look like this:
 ```

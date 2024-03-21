@@ -314,8 +314,6 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
                 GraphicInfo.GRAPHICSPROCESSES[self.id] += 1
                 GraphicInfo.RUNNINGGRAPHIC = (self.id, idx)
             def func(event, element=None, aborted=False):
-                stacks = GO.PSTACKS.copy()
-                pidx = GO.PIDX
                 if event == GO.EELEMENTCLICK and element.uid in self.callbacks:
                     ret = self.callbacks[element.uid](element)
                 if slf == None:
@@ -324,8 +322,6 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
                     ret = funcy(slf, event, *args, element=element, aborted=aborted, **kwargs)
                 if self.id is not None:
                     GraphicInfo.RUNNINGGRAPHIC = (self.id, idx)
-                GO.PSTACKS = stacks
-                GO.PIDX = pidx
                 return ret
             cont = copy(self.Container)
             func(GO.EFIRST)
@@ -462,8 +458,8 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         pygame.draw.rect(sur, col, sur.get_rect(), border_radius=spacing)
         sur.blit(txt, (spacing, spacing))
 
-        bpos = GO.PSTACKS[pos][1](self.size, sur.get_size()) # Basic/Bottom pos
-        npos = (bpos[0]+GO.PSTACKS[pos][0][0]*dist, bpos[1]+GO.PSTACKS[pos][0][1]*dist) # New pos
+        bpos = pos.func(self.size, sur.get_size()) # Basic/Bottom pos
+        npos = (bpos[0]+pos.stack[0]*dist, bpos[1]+pos.stack[1]*dist) # New pos
         self.Stuff['toasts'].append(Toast(sur, npos, bpos, timeout))
 
     def Dropdown(self, elements, spacing=5, font=GO.FFONT, activecol=GO.CACTIVE, bgcol=GO.CBLACK, txtcol=GO.CWHITE, pos=None):
@@ -534,7 +530,7 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
             The allowed width of the font, by default 900
         """
         obj = font.render(txt, colour, allowed_width=allowed_width)
-        pos = self.pos_store(GO.PSTACKS[position][1](self.size, obj.get_size()), obj.get_size(), position)
+        pos = self.pos_store(position.func(self.size, obj.get_size()), obj.get_size(), position)
         self.Stuff['text'].append(GE.Static(obj, pos))
     
     def add_surface(self, obj, position):
@@ -547,7 +543,7 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         position : GO.P___ (e.g. GO.PRBOTTOM)
             The position on the screen this element will be placed
         """
-        pos = self.pos_store(GO.PSTACKS[position][1](self.size, obj.get_size()), obj.get_size(), position)
+        pos = self.pos_store(position.func(self.size, obj.get_size()), obj.get_size(), position)
         self.Stuff['surs'].append(GE.Static(obj, pos))
     
     def add_empty_space(self, position, wid, hei):
@@ -563,7 +559,7 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         hei : int
             The height of the empty space (can be negative to push the elements back)
         """
-        self.pos_store(GO.PSTACKS[position][1](self.size, (wid, hei)), (wid, hei), position)
+        self.pos_store(position.func(self.size, (wid, hei)), (wid, hei), position)
     
     def add_button(self, txt, col, position, txtcol=GO.CBLACK, font=GO.FFONT, allowed_width=900, on_hover_enlarge=True, callback=None):
         """Adds a button to the GUI!
@@ -595,7 +591,7 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         """
         sur = font.render(txt, txtcol, allowed_width=allowed_width)
         sze = [sur.get_width() + 20, sur.get_height() + 20]
-        pos = self.pos_store(GO.PSTACKS[position][1](self.size, sze), sze, position)
+        pos = self.pos_store(position.func(self.size, sze), sze, position)
         r = pygame.Rect(*pos, *sze)
         btn = GE.Button(sur, r, pos, col, txt, (-1 if on_hover_enlarge==False else (10 if on_hover_enlarge==True else on_hover_enlarge)))
         self.Stuff['buttons'].append(btn)
@@ -641,7 +637,7 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         
         dialog_box.set_indicator(indicator)
         dialog_box.set_portrait(portrait)
-        pos = self.pos_store(GO.PSTACKS[position][1](self.size, dialog_box.rect.size), dialog_box.rect.size, position)
+        pos = self.pos_store(position.func(self.size, dialog_box.rect.size), dialog_box.rect.size, position)
         dialog_box.rect.topleft = pos
         dialog_box = GE.Sprite(dialog_box)
         self.Stuff['TextBoxes'].append(dialog_box)
@@ -686,7 +682,7 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         if width != None: sze[0] = width+5
         else: sze[0] += 5
         sze[1] += 10
-        pos = self.pos_store(GO.PSTACKS[position][1](self.size, sze), sze, position)
+        pos = self.pos_store(position.func(self.size, sze), sze, position)
         ibox = InputBox(*pos, *sze, resize, placeholder, font, maximum, start) # TODO: Positioning and custom width & height & resize
         self.Stuff['input_boxes'].append(ibox)
         self.uids.append(ibox)
@@ -725,7 +721,7 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         if width != None: sze[0] = font.size('9'*width)[0]+5
         sze[0] += 5
         sze[1] += 10
-        pos = self.pos_store(GO.PSTACKS[position][1](self.size, sze), sze, position)
+        pos = self.pos_store(position.func(self.size, sze), sze, position)
         ibox = NumInputBox(*pos, *sze, resize, start, *bounds, font) # TODO: Positioning and custom width & height & resize
         self.Stuff['input_boxes'].append(ibox)
         self.uids.append(ibox)
@@ -753,7 +749,7 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
             the UID of this element
         """
         sze = (size*1.5, size*1.5)
-        pos = self.pos_store(GO.PSTACKS[position][1](self.size, sze), sze, position)
+        pos = self.pos_store(position.func(self.size, sze), sze, position)
         sw = Switch(self.WIN, pos[0]+size/4, pos[1]+size/4, size, 2, default)
         self.Stuff['switches'].append(sw)
         self.uids.append(sw)
@@ -778,7 +774,7 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         int
             the UID of this element
         """
-        pos = self.pos_store(GO.PSTACKS[position][1](self.size, (size, size)), (size, size), position)
+        pos = self.pos_store(position.func(self.size, (size, size)), (size, size), position)
         btn = ColourPickerBTN(self.WIN, *pos, size, sow)
         self.Stuff['cps'].append(btn)
         self.uids.append(btn)
@@ -810,14 +806,14 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
             (the UID of the element, The Graphic class created which is put onto the main one)
         """
         # TODO: FIX POSITIONING
-        pos = self.pos_store(GO.PSTACKS[position][1](self.size, size), size, position)
+        pos = self.pos_store(position.func(self.size, size), size, position)
         s = GScrollable(self.WIN, pos, size, sos, outline, bar)
         self.Stuff['scrollsables'].append(s)
         self.uids.append(s)
         return (len(self.uids) - 1, s.G)
     
     def pos_store(self, pos, sze, func):
-        sizeing = GO.PSTACKS[func][0]
+        sizeing = func.stack
         if func not in self.store:
             self.store[func] = [sze[0]*sizeing[0], sze[1]*sizeing[1]]
             return pos
@@ -833,7 +829,6 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         self.rel = True
     
     def Clear(self):
-        GO.PIDX = 0
         self.store = {}
         self.pause = False
         self.nextuid = 0

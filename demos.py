@@ -50,8 +50,8 @@ def GGraphicsDemo():
         if event == GO.EFIRST: # First, before anything else happens in the function
             G.Container.txt = txt
         if event == GO.ELOADUI: # Load the BlazeSudio.graphics
-            CTOP = GO.PNEW([1, 0], GO.PSTACKS[GO.PCTOP][1]) # Bcos usually the Center Top makes the elements stack down, so I make a new thing that stacks sideways
-            LBOT = GO.PNEW([0, -1], GO.PSTACKS[GO.PLBOTTOM][1])
+            CTOP = GO.PNEW([1, 0], GO.PCTOP) # Bcos usually the Center Top makes the elements stack down, so I make a new thing that stacks sideways
+            LBOT = GO.PNEW([0, -1], GO.PLBOTTOM)
             try:
                 prevs = [G.uids[i].get() for i in (G.Container.switches+[G.Container.numinp,G.Container.inp])] + [G.uids[G.Container.colour].picker.p]
                 prevTG = [G.uids[G.Container.scrollable].G.uids[G.Container.otherswitch].get(), G.uids[G.Container.scrollable].scroll]
@@ -112,7 +112,7 @@ def GGraphicsDemo():
                 elif element == G.Container.exitbtn:
                     G.Abort()
                 elif element == 1:
-                    bot = GO.PNEW([0, 0], GO.PSTACKS[GO.PCBOTTOM][1], 1)
+                    bot = GO.PNEW([0, 0], GO.PCBOTTOM)
                     G.add_TextBox('HALLOOOO! :)', bot)
                     G.Container.idx = 0
                 else:

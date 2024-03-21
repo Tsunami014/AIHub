@@ -6,7 +6,7 @@
 ## Next version: Speed
  - [ ] Make graphics run WAY faster and **efficient** (currently EXTREMLY SLOW)
  - [ ] Make `loading.py` MUCH faster (can rewrite it if you want, just need to also update `graphics.py`)
- - [ ] Make GO.PNEW easier (e.g. have GO.P___ all have their functions in them and stuff so you don't need GO.PSTACKS)
+ - [x] Make GO.PNEW easier (e.g. have GO.P___ all have their functions in them and stuff so you don't need GO.PSTACKS)
  - [ ] Fix import system to make things load faster
  - [ ] Make progressbars load stuff in the background for faster launching of the app
 ## Version after: GUI

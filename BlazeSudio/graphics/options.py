@@ -324,41 +324,45 @@ FSMALL =    F___(None, 32, name='SMALL')
 # Positions
 @Base
 class P___:
-    idx: int
     lmr: int | None # Left(0) Middle(1) Right(2)
     umd: int | None # Up(0) Middle(1) Down(2)
+    func: function
+    stack: list[int,int]
 
-PLTOP =    P___(0, 0, 0, name='LEFTTOP')
-PLCENTER = P___(1, 0, 1, name='LEFTCENTER')
-PLBOTTOM = P___(2, 0, 2, name='LEFTBOTTOM')
-PCTOP =    P___(3, 1, 0, name='CENTERTOP')
-PCCENTER = P___(4, 1, 1, name='CENTERCENTER')
-PCBOTTOM = P___(5, 1, 2, name='CENTERBOTTOM')
-PRTOP =    P___(6, 2, 0, name='RIGHTTOP')
-PRCENTER = P___(7, 2, 1, name='RIGHTCENTER')
-PRBOTTOM = P___(8, 2, 2, name='RIGHTBOTTOM')
-PFILL =    P___(9, None, None, name='FILL')
-
-# Stacks. Don't use unless you know what you're doing
-PSTACKS = {
-    PLTOP:    ([1, 0],  lambda size, sizeofobj: (0, 0)),
-    PLCENTER: ([1, 0],  lambda size, sizeofobj: (0, round(size[1]/2-sizeofobj[1]/2))),
-    PLBOTTOM: ([1, 0],  lambda size, sizeofobj: (0, size[1]-sizeofobj[1])),
-    PCTOP:    ([0, 1],  lambda size, sizeofobj: (round(size[0]/2-sizeofobj[0]/2), 0)),
-    PCCENTER: ([0, 1],  lambda size, sizeofobj: (round(size[0]/2-sizeofobj[0]/2), round(size[1]/2-sizeofobj[1]/2))),
-    PCBOTTOM: ([0, -1], lambda size, sizeofobj: (round(size[0]/2-sizeofobj[0]/2), size[1]-sizeofobj[1])),
-    PRTOP:    ([-1, 0], lambda size, sizeofobj: (size[0]-sizeofobj[0], 0)),
-    PRCENTER: ([-1, 0], lambda size, sizeofobj: (size[0]-sizeofobj[0], round(size[1]/2-sizeofobj[1]/2))),
-    PRBOTTOM: ([-1, 0], lambda size, sizeofobj: (size[0]-sizeofobj[0], size[1]-sizeofobj[1])),
-    PFILL:    ([0, 0],  lambda size, sizeofobj: (0, 0))
-}
-
-PIDX = 0 # DO NOT USE UNLESS YOU REALLY KNOW WHAT YOU'RE DOING
+PLTOP =    P___(0, 0, name='LEFTTOP',
+                func=lambda size, sizeofobj: (0, 0),
+                stack=[1, 0])
+PLCENTER = P___(0, 1, name='LEFTCENTER',
+                func=lambda size, sizeofobj: (0, round(size[1]/2-sizeofobj[1]/2)),
+                stack=[1, 0])
+PLBOTTOM = P___(0, 2, name='LEFTBOTTOM',
+                func=lambda size, sizeofobj: (0, size[1]-sizeofobj[1]),
+                stack=[1, 0])
+PCTOP =    P___(1, 0, name='CENTERTOP',
+                func=lambda size, sizeofobj: (round(size[0]/2-sizeofobj[0]/2), 0),
+                stack=[0, 1])
+PCCENTER = P___(1, 1, name='CENTERCENTER',
+                func=lambda size, sizeofobj: (round(size[0]/2-sizeofobj[0]/2), round(size[1]/2-sizeofobj[1]/2)),
+                stack=[0, 1])
+PCBOTTOM = P___(1, 2, name='CENTERBOTTOM',
+                func=lambda size, sizeofobj: (round(size[0]/2-sizeofobj[0]/2), size[1]-sizeofobj[1]),
+                stack=[0, -1])
+PRTOP =    P___(2, 0, name='RIGHTTOP',
+                func=lambda size, sizeofobj: (size[0]-sizeofobj[0], 0),
+                stack=[-1, 0])
+PRCENTER = P___(2, 1, name='RIGHTCENTER',
+                func=lambda size, sizeofobj: (size[0]-sizeofobj[0], round(size[1]/2-sizeofobj[1]/2)),
+                stack=[-1, 0])
+PRBOTTOM = P___(2, 2, name='RIGHTBOTTOM',
+                func=lambda size, sizeofobj: (size[0]-sizeofobj[0], size[1]-sizeofobj[1]),
+                stack=[-1, 0])
+PFILL =    P___(None, None, name='FILL',
+                func=lambda size, sizeofobj: (0, 0),
+                stack=[0, 0])
 
 def PNEW(
          stack: list[int,int], 
-         func: function, 
-         idx: int = None, 
+         func: function|P___, 
          lmr: int[1,0,-1] = None, 
          umd: int[1,0,-1] = None
         ) -> P___:
@@ -371,11 +375,9 @@ def PNEW(
         The stacking of the elements;
         i.e. will a new element using the same function be placed left of the original, or above it, or...
         The first element in the list is the x position offset (1, 0 or -1) and the second value is the y (1, 0 or -1)
-    func : function(sizeofscreen: tuple[int,int], sizeofobj: tuple[int,int]); returns tuple[int,int]
+    func : function(sizeofscreen: tuple[int,int], sizeofobj: tuple[int,int]); returns tuple[int,int] | GO.P___
         The function of the layout; returns where to put the element
-    idx : int, optional
-        The ID of the new P___, by default None
-        You probably should never need to use this unless you want to replace an old position with a new one
+        Can also use a GO.P___!
     lmr : int, optional
         Whether this layout goes to the Left of the screen (0), Middle (1), Right (2), or N/A (None), by default None
         This is optional, and does nothing except help give your new layout some documentation of sorts
@@ -387,16 +389,14 @@ def PNEW(
     GO.P___
         The output position!
     """
-    # TODO: Make this able to take an existing P___ as func and work out the function itself
-    global PIDX
-    if idx == None:
-        idx = PIDX
-        PIDX += 1
-    pos = P___(idx+10, lmr, umd)
-    PSTACKS[pos] = (stack, func)
+    if isinstance(func, P___):
+        f = func.func
+    else:
+        f = func
+    pos = P___(lmr, umd, f, stack)
     return pos
 
-def PSTATIC(x: int, y: int, idx: int = None) -> P___:
+def PSTATIC(x: int, y: int) -> P___:
     """
     Creates a GO.P___ to put stuff at a specific x and y location
 
@@ -406,22 +406,13 @@ def PSTATIC(x: int, y: int, idx: int = None) -> P___:
         The x position of where to put the element
     y : int
         The y position of where to put the element
-    idx : int, optional
-        The ID of the new P___, by default None
-        You probably should never need to use this unless you want to replace an old position with a new one
-
+    
     Returns
     -------
     GO.P___
         The output position!
     """
-    global PIDX
-    if idx == None:
-        idx = PIDX
-        PIDX += 1
-    pos = P___(idx+10, None, None)
-    PSTACKS[pos] = ([0, 0], lambda _, __: (x, y))
-    return pos
+    return P___(None, None, lambda _, __: (x, y), [0, 0])
 
 # Events
 @Base
