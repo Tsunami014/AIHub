@@ -13,3 +13,4 @@ html2text
 dill
 pywin32
 nest_asyncio
+colorsys

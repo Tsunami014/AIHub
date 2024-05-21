@@ -123,12 +123,16 @@ class CustomGraphic: # This is if you don't want to use the actual graphics libr
         self.uids = _FakeUIDs()
 
 class Graphic:
-    def __init__(self, bgcol=GO.CWHITE, TB=True, win=None, no_id=False):
+    def __init__(self,
+                 bgcol: GO.C___ = GO.CWHITE, 
+                 TB: bool = True, 
+                 win: pygame.Surface = None, 
+                 no_id: int = False) -> None:
         """The class for making really cool graphic screens :)
 
         Parameters
         ----------
-        bgcol : tuple[int, int, int]
+        bgcol : GO.C___
             The colour of the button. For ease of use default colours are provided as GO.C___ (e.g. GO.CGREEN)
         TB : bool, optional
             Whether or not you want the little terminal bar at the bottom, by default True
@@ -193,7 +197,7 @@ class Graphic:
         self.uids = []
         self.callbacks = {}
         self.Container = GS.Container()
-    def set_caption(self, caption=None, iconsur=None):
+    def set_caption(self, caption: str = None, iconsur: pygame.Surface = None) -> None:
         """Sets the caption of the screen! Highly recommend to use at the start of your code.
         Also highly recommend that when you use this function you modify at least one thing as otherwise it is a waste of your time.
 
@@ -216,7 +220,8 @@ class Graphic:
             return LoadingDecorator(func)(self.WIN, GO.FTITLE)
         return func2
     
-    def PBLoading(self, tasks, loadingtxt='Loading{3} {2}% ({0} / {1})'):
+    def PBLoading(self, tasks: list[function], 
+                  loadingtxt: str = 'Loading{3} {2}% ({0} / {1})') -> tuple[Progressbar, function]:
         """Have a loading screen! Like G.Loading, but with a progressbar!
 
         Parameters
@@ -281,7 +286,11 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
             self.Graphic(funcy, slf)(*args, **kwargs)
         return func2
     
-    def Graphic(self, funcy, slf=None, /, *, generator=False, update=True, events=pygame.event.get, mousepos=pygame.mouse.get_pos):
+    def Graphic(self, funcy, slf=None, /, *, 
+                generator: bool = False, 
+                update: bool = True, 
+                events: function = pygame.event.get, 
+                mousepos: function = pygame.mouse.get_pos) -> function:
         """
         @G.Graphic
         @G.Graphic(slf=None, **options)
@@ -416,7 +425,7 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         if generator: return func2
         else: return func3
     
-    def BringToFront(self):
+    def BringToFront(self) -> None:
         hwnd = pygame.display.get_wm_info()['window']
         win32gui.ShowWindow(hwnd,5)
         pythoncom.CoInitialize()
@@ -425,7 +434,15 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         # Another answer said to use shell.SendKeys('%'), but... This works better
         win32gui.SetForegroundWindow(hwnd)
 
-    def Toast(self, text, timeout=120, pos=GO.PCBOTTOM, dist=20, spacing=5, font=GO.FFONT, col=GO.CACTIVE, txtcol=GO.CWHITE):
+    def Toast(self, 
+              text: str, 
+              timeout: int = 120, 
+              pos: GO.P___ = GO.PCBOTTOM, 
+              dist: int = 20, 
+              spacing: int = 5, 
+              font: GO.F___ = GO.FFONT, 
+              col: GO.C___ = GO.CACTIVE, 
+              txtcol: GO.C___ = GO.CWHITE) -> None:
         """
         Makes a toast!
 
@@ -446,9 +463,9 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
             The spacing from the edge of the bubble the toast is in to the text, by default 5
         font : GO.FNEW, optional
             The font of the text, by default GO.FFONT (other fonts provided as GO.F___)
-        col : tuple[int, int, int], optional
+        col : GO.C___, optional
             The colour of the toast, by default GO.CACTIVE (other colours provided as GO.C___)
-        txtcol : tuple[int, int, int], optional
+        txtcol : GO.C___, optional
             The colour of the text, by default GO.CWHITE
         """
         
@@ -462,23 +479,30 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         npos = (bpos[0]+pos.stack[0]*dist, bpos[1]+pos.stack[1]*dist) # New pos
         self.Stuff['toasts'].append(Toast(sur, npos, bpos, timeout))
 
-    def Dropdown(self, elements, spacing=5, font=GO.FFONT, activecol=GO.CACTIVE, bgcol=GO.CBLACK, txtcol=GO.CWHITE, pos=None):
+    def Dropdown(self, 
+                 elements: list[str], 
+                 spacing: int = 5, 
+                 font: GO.F___ = GO.FFONT, 
+                 activecol: GO.C___ = GO.CACTIVE, 
+                 bgcol: GO.C___ = GO.CBLACK, 
+                 txtcol: GO.C___ = GO.CWHITE, 
+                 pos: tuple[int,int] = None) -> int|None|False:
         """Spawns a dropdown!
         This will pause everything else! You will need to click out of the dropdown to exit it.
 
         Parameters
         ----------
-        elements : list
+        elements : list[str]
             The choices that you can select
         spacing : int, optional
             The spacing between each element, by default 5
         font : GO.FNEW, optional
             The font of the text. For ease of use default fonts are provided as GO.F___ (e.g. GO.FCODEFONT), by default GO.FFONT
-        activecol : tuple[int, int, int], optional
+        activecol : GO.C___, optional
             The colour when you hover your mouse over an option, by default GO.CACTIVE
-        bgcol : tuple[int, int, int], optional
+        bgcol : GO.C___, optional
             The colour of the background of the dropdown, by default GO.CBLACK
-        txtcol : tuple[int, int, int], optional
+        txtcol : GO.C___, optional
             The colour of the text of the dropdown, by default GO.CWHITE
         pos : tuple[int, int], optional
             The position of the dropdown, by default the mouse location
@@ -486,7 +510,7 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
 
         Returns
         -------
-        int/None/False
+        int|None|False
             The index of the input elements list that was selected, else None if nothing selected
             False if you exited from the menu using escape or closing the window. This will also exit the GUI.
         """
@@ -494,7 +518,7 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         if d is False: self.run = False
         return d
     
-    def add_custom(self, sprite, pass_events=False):
+    def add_custom(self, sprite, pass_events: bool = False) -> None:
         """
         Adds a custom sprite to the screen!
 
@@ -513,14 +537,19 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         """
         self.Stuff['customs'].append(GE.Custom(sprite, pass_events))
     
-    def add_text(self, txt, colour, position, font=GO.FFONT, allowed_width=900):
+    def add_text(self, 
+                 txt, 
+                 colour, 
+                 position, 
+                 font=GO.FFONT, 
+                 allowed_width: int = 900):
         """Adds text to the GUI!
 
         Parameters
         ----------
         txt : str
             The text that will be added to the GUI.
-        colour : tuple[int, int, int]
+        colour : GO.C___
             The colour of the button. For ease of use default colours are provided as GO.C___ (e.g. GO.CGREEN)
         position : GO.P___ (e.g. GO.PRBOTTOM)
             The position on the screen this element will be placed
@@ -568,11 +597,11 @@ spawn up another Graphic screen allowing you to go back to the previous screen, 
         ----------
         txt : str
             The text ON the button
-        col : tuple[int, int, int]
+        col : GO.C___
             The colour of the button. For ease of use default colours are provided as GO.C___ (e.g. GO.CGREEN)
         position : GO.P___ (e.g. GO.PRBOTTOM)
             The position on the screen this element will be placed
-        txtcol : tuple[int, int, int], optional
+        txtcol : GO.C___, optional
             The colour of the text. For ease of use default colours are provided as GO.C___ (e.g. GO.CGREEN), by default GO.CBLACK
         font : GO.FNEW, optional
             The font of the text. For ease of use default fonts are provided as GO.F___ (e.g. GO.FCODEFONT), by default GO.FFONT

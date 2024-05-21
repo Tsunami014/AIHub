@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import colorsys
 import pygame
 import pygame.freetype
 from string import printable
@@ -26,16 +27,66 @@ def Base(cls=None, default=True, modify_str=True):
     # @Base
     return wrap(cls)
 
+# ColourTypes
+@Base
+class CT__:
+    idx: int
+CTRGB = CT__(0, name='RGB', doc='Red Green Blue')
+CTHEX = CT__(1, name='Hex', doc='Hex code (e.g. #FFFFFF)')
+CTHSV = CT__(2, name='HSV', doc='Hue Saturation Value (or Brightness)')
+CTHSL = CT__(3, name='HSL', doc='Hue Saturation Lightness')
+
 # Colours
 @Base(default=False, modify_str=False)
-class C___(tuple):
-    def __init__(self, colourtuple: tuple[int,], name='None'):
+class C___:
+    def __init__(self, colour: tuple[int,int,int] | str, type: CT__ = CTRGB, name='None') -> None:
         self.name = name
+        if not isinstance(type, CT__):
+            raise TypeError(
+                'Input <type> is not a `GO.CT__`!!!'
+            )
+        if type == CTRGB:
+            self.colourdata = colour
+        elif type == CTHEX:
+            value = colour.lstrip('#')
+            lv = len(value)
+            self.colourdata = tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
+        elif type == CTHSV:
+            self.colourdata = colorsys.hsv_to_rgb(*colour)
+        elif type == CTHSL:
+            self.colourdata = colorsys.hls_to_rgb(*colour)
+
+    def Convert(self, to: CT__):
+        if to == CTRGB:
+            return self.colourdata
+        elif to == CTHEX:
+            return '#%02x%02x%02x' % self.colourdata
+        elif to == CTHSV:
+            return colorsys.rgb_to_hsv(*self.colourdata)
+        elif to == CTHSL:
+            return colorsys.rgb_to_hls(*self.colourdata)
+    
     def __str__(self):
-        return f'<GO.C{self.name} col=({str(list(self))[1:-1]})>'
+        return f'<GO.C{self.name} col={str(self.colourdata)}>'
     def __repr__(self): return str(self)
 
-COLOUR = tuple[int,int,int] | tuple[int,int,int,int] | C___
+    def __getitem__(self, index):
+        return self.colourdata[index]
+
+    def __len__(self):
+        return len(self.colourdata)
+    def __iter__(self):
+        return iter(self.colourdata)
+
+    def __eq__(self, other):
+        if not isinstance(other, C___):
+            return False
+        return self.colourdata == other.colourdata
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.colourdata)
 
 CTRANSPARENT = C___((255, 255, 255, 1), name='TRANSPARENT')
 CWHITE =  C___((255, 255, 255), name='WHITE')
@@ -93,7 +144,7 @@ class F___:
         self.emojifont = pygame.freetype.SysFont('segoeuisymbol', size, bold, italic)
     def render(self, 
                txt: str, 
-               col: COLOUR, 
+               col: C___, 
                updownweight: SW__ = SWMID, 
                leftrightweight: SW__ = SWMID, 
                allowed_width: int = None, 
@@ -205,7 +256,7 @@ class F___:
                 return out, '\n'.join(masterlines[:maxlines][:len(surs)])
             return out
     
-    def split(self, txt: str, col: COLOUR) -> list[pygame.Surface]:
+    def split(self, txt: str, col: C___) -> list[pygame.Surface]:
         """
         Splits text and renders it!
         This splits text up into 2 different parts:
