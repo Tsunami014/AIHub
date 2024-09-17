@@ -1,3 +1,8 @@
+# AIHub
+## History
+Blaze Sudios started out as a way of using AIs to easily make a game in seconds. But as it progressed, I realised that making a game yourself is fun and should be promoted over having anything you want in 2 seconds. Of course, for those who want that, I'll maybe be implementing that in the future, but for now all the AI stuff from BS will be ported over to this new repo and (in the future) you can pip install the AI part separately to the actual game making.
+
+
 [![Blaze Sudio Banner](images/BlazeBanner.png)]()
 
 <p style="color: grey" align="center"><i>A game engine for Python lovers! ❤️</i></p>
