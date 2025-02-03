@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "AIHub"
+description = "A buncha AI stuff to use in your projects!"
+version = "0.0.0"
+
+authors = [
+  {name = "Tsunami014", email = "tsunami014@duck.com"},
+]
+maintainers = [
+  {name = "Tsunami014", email = "tsunami014@duck.com"}
+]
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["AI"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+]
+# 5 - Production/Stable
+
+[project.optional-dependencies]
+gui = ["flask"]
+
+[project.gui-scripts]
+AI = "AIHub:__main__"
