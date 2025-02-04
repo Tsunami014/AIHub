@@ -10,6 +10,38 @@
         margin: 17px;
         width: 90%;
     }
+
+    #messages {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+        top: 0;
+        left: 0;
+        position: absolute;
+    }
+    .out {
+        height: fit-content;
+        display: flex;
+        padding: 0px 10px;
+    }
+    .myOut {
+        justify-content: end;
+    }
+    .in {
+        display: flex;
+        align-items: center;
+        width: fit-content;
+        border-radius: 10px;
+        padding: 0px 10px;
+        margin: 10px 1px;
+    }
+    .myIn {
+        background-color: rgba(var(--accent-1-strong-rgb), 0.5);
+    }
+    .botIn {
+        background-color: rgba(var(--accent-2-strong-rgb), 0.5);
+    }
 </style>
 
 <div class="centre">
@@ -42,4 +74,16 @@
 
         loadData();
     </script>
+</div>
+<div id="messages">
+    <div class="out myOut">
+        <div class="in myIn">
+            <p>Hi</p>
+        </div>
+    </div>
+    <div class="out">
+        <div class="in botIn">
+            <p>Hello</p>
+        </div>
+    </div>
 </div>
