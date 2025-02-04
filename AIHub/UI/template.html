@@ -2,13 +2,32 @@
 <head>
     <style>
         :root {
-            --hov-col: rgba(60, 70, 80, 0.12);
-            --active-col: rgba(75, 90, 110, 0.17);
+            --hov-col: rgba(60, 70, 80, 0.07);
+            --active-col: rgba(75, 90, 110, 0.12);
 
-            --primary-1: light-dark(rgba(240, 255, 240), rgb(30, 35, 30));
-            --accent-1: light-dark(rgb(140, 170, 140, 0.5), rgb(60, 85, 65, 0.5));
-            --primary-2: light-dark(rgba(245, 255, 255), rgb(35, 40, 45));
-            --accent-2: light-dark(rgb(140, 150, 170, 0.5), rgb(60, 75, 85, 0.5));
+            --primary-1: light-dark(rgba(240, 255, 240), rgba(30, 35, 30));
+            --accent-1-light-rgb: 140, 150, 170;
+            --accent-1-dark-rgb: 60, 75, 85;
+            --accent-1-strong-rgb: 75, 110, 190;
+
+            --primary-2: light-dark(rgba(245, 255, 255), rgba(35, 40, 45));
+            --accent-2-light-rgb: 140, 170, 140;
+            --accent-2-dark-rgb: 60, 85, 65;
+            --accent-2-strong-rgb: 75, 190, 110;
+        }
+
+        *:focus {
+            outline: none;
+        }
+
+        input[type="text"]:focus, button:focus {
+            box-shadow: 0 0 0 2px rgba(var(--accent-2-strong-rgb), 0.5);
+        }
+        .sidebar input[type="text"]:focus, .sidebar button:focus {
+            box-shadow: 0 0 0 2px rgba(var(--accent-1-strong-rgb), 0.5);
+        }
+        .noAccent:focus {
+            box-shadow: none !important;
         }
 
         html, body {
@@ -56,18 +75,10 @@
             background-color: var(--primary-1);
         }
 
-        .centre {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
         #sideLeft {
             left: 0;
             width: 260px;
-            border-right: 2px solid var(--accent-1);
-            opacity: 0.5;
-            margin-left: 0;
+            border-right: 2px solid light-dark(rgba(var(--accent-1-light-rgb), 0.7), rgba(var(--accent-1-dark-rgb), 0.7));
             transition: margin-left 0.7s cubic-bezier(.17,.84,.44,1);
         }
 
@@ -78,6 +89,15 @@
 
         #openSideLeft {
             position: fixed;
+        }
+
+        input[type="text"] {
+            width: 60%;
+            font-size: 14pt;
+            padding: 10px;
+            border-radius: 10px;
+            accent-color: rgba(var(--accent-2-strong-rgb), 0.5);
+            border: 2px solid light-dark(rgba(var(--accent-2-light-rgb), 0.2), rgba(var(--accent-2-dark-rgb), 0.2));
         }
     </style>
 
@@ -120,7 +140,7 @@
         </defs>
     </svg>
 
-    <button id="openSideLeft" class="hidden">
+    <button id="openSideLeft" class="noAccent hidden">
         <svg width="36" height="36">
             <use href="#sideLeftIcon"/>
         </svg>  
@@ -128,7 +148,7 @@
 
     <div class="container">
         <div id="sideLeft" class="sidebar">
-            <button id="closeSideLeft">
+            <button id="closeSideLeft" class="noAccent">
                 <svg width="36" height="36">
                     <use href="#sideLeftIcon"/>
                 </svg> 
