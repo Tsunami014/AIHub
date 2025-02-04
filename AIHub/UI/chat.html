@@ -9,6 +9,7 @@
         transition: all .25s linear;
         margin: 17px;
         width: 90%;
+        z-index: 1;
     }
 
     #messages {
@@ -35,6 +36,8 @@
         border-radius: 10px;
         padding: 0px 10px;
         margin: 10px 1px;
+        max-width: 50%;
+        word-break: break-all;
     }
     .myIn {
         background-color: rgba(var(--accent-1-strong-rgb), 0.5);
@@ -47,6 +50,76 @@
 <div class="centre">
     <script>
         insertTemplate(document.currentScript.parentElement, 'chatContainer');
+
+        var CONV = [];
+
+        function makeMessage(role, content) {
+            var out = document.createElement('div');
+            out.classList.add('out');
+            var inn = document.createElement('div');
+            inn.classList.add('in');
+            if (role === 'user') {
+                out.classList.add('myOut');
+                inn.classList.add('myIn');
+            } else {
+                inn.classList.add('botIn');
+            }
+            var p = document.createElement('p');
+            p.innerText = content;
+            inn.appendChild(p);
+            out.appendChild(inn);
+            document.getElementById('messages').appendChild(out);
+            return out;
+        }
+
+        function addMessage(role, content, disableInp = false) {
+            var URL = window.location.origin;
+            if (!URL.endsWith('/')) {
+                URL += '/';
+            }
+            const ID = this.location.pathname.split('/')[2];
+            var newConv = CONV;
+            newConv.push({
+                'role': role,
+                'content': content
+            });
+            var cont;
+            if (disableInp) {
+                cont = document.getElementById('chatIn');
+                cont.disabled = true;
+            }
+
+            fetch(URL+'api/v1/chat/'+ID, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        'conv': CONV
+                    })
+                })
+                .then(resp => resp.json())
+                .then(json => {
+                    console.log(json);
+                    if (disableInp) { cont.disabled = false; }
+                    if (json.status === 'error') {
+                        alert(json.message);
+                        return;
+                    }
+                    CONV = json.data.messages;
+                    if (disableInp) { cont.value = ''; }
+                    makeMessage(role, content);
+                });
+        }
+
+        function runAI() {
+            addMessage('bot', 'Hello, how may I help you?', true);
+        }
+
+        function onChatGo() {
+            addMessage('user', document.getElementById('chatIn').value, true);
+            runAI();
+        }
 
         async function loadData() {
             var URL = window.location.origin;
@@ -70,20 +143,16 @@
                 return;
             }
             console.log(data);
+            CONV = data.data.messages;
+            CONV.forEach(element => {
+                makeMessage(element.role, element.content);
+            });
+            if (CONV.length < 2) { // First message; came straight from init
+                runAI();
+            }
         }
 
         loadData();
     </script>
 </div>
-<div id="messages">
-    <div class="out myOut">
-        <div class="in myIn">
-            <p>Hi</p>
-        </div>
-    </div>
-    <div class="out">
-        <div class="in botIn">
-            <p>Hello</p>
-        </div>
-    </div>
-</div>
+<div id="messages"></div>

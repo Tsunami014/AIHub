@@ -10,8 +10,9 @@ with open(os.path.join(PATH, 'UI', 'template.html')) as f:
 
 class DataBase:
     def __init__(self):
+        if not os.path.exists(os.path.join(PATH, 'UI', 'databases')):
+            os.mkdir(os.path.join(PATH, 'UI', 'databases'))
         self.conn = sqlite3.connect(os.path.join(PATH, 'UI', 'databases', 'chats.db'), check_same_thread=False)
-        self.cursor = self.conn.cursor()
         self.execute('''CREATE TABLE IF NOT EXISTS chats (
   id INT,
   name VARCHAR(100),
@@ -19,8 +20,7 @@ class DataBase:
 );''')
     
     def execute(self, sql, *params):
-        self.cursor.execute(sql, params)
-        return self.cursor.fetchall()
+        return self.conn.execute(sql, params).fetchall()
     
     def save(self):
         self.conn.commit()
@@ -86,7 +86,7 @@ def handle_request(id, method=None):
             data['conv'] = {'messages': []}
         else:
             data['conv'] = {'messages': data['conv']}
-        DB.execute('INSERT INTO chats (id, name, conv) VALUES (?, ?, ?)', id, data['name'], data['conv'])
+        DB.execute('INSERT INTO chats (id, name, conv) VALUES (?, ?, ?)', id, data['name'], json.dumps(data['conv']))
         DB.save()
         return flask.jsonify({"status": "OK", "id": id, "data": data}), 201
     elif meth == 'PUT': # Update the chat
@@ -96,12 +96,14 @@ def handle_request(id, method=None):
             data = {} # So we can send back *our* error message, not it's
         if not data or ('name' not in data and 'conv' not in data):
             return flask.jsonify({"status": "error", "id": id, "message": "Invalid request data"}), 400
-        chat = DB.query('SELECT * FROM chats WHERE id = ?', id)
+        if 'conv' in data:
+            data['conv'] = json.dumps({'messages': data['conv']})
+        chat = DB.execute('SELECT * FROM chats WHERE id = ?', id)
         if chat:
             if 'name' not in data:
-                DB.execute('UPDATE chats SET name = ? WHERE id = ?', data['conv'], id)
+                DB.execute('UPDATE chats SET conv = ? WHERE id = ?', data['conv'], id)
             elif 'conv' not in data:
-                DB.execute('UPDATE chats SET conv = ? WHERE id = ?', data['name'], id)
+                DB.execute('UPDATE chats SET name = ? WHERE id = ?', data['name'], id)
             else:
                 DB.execute('UPDATE chats SET name = ?, conv = ? WHERE id = ?', data['name'], data['conv'], id)
             DB.save()
