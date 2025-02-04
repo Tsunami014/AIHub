@@ -8,5 +8,8 @@
 </style>
 
 <div class="centre">
-    <input type="text" id="chatIn" name="chatIn">
+    <script id="hi">
+        console.log(document.currentScript);
+        insertTemplate(document.currentScript.parentElement, 'chatContainer');
+    </script>
 </div>
