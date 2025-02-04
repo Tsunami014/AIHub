@@ -56,6 +56,8 @@ def newChat(method=None):
             data['name'] = 'Chat ' + str(id)
         if 'conv' not in data:
             data['conv'] = {'messages': []}
+        else:
+            data['conv'] = {'messages': data['conv']}
         DB.execute('INSERT INTO chats (id, name, conv) VALUES (?, ?, ?)', id, data['name'], json.dumps(data['conv']))
         DB.save()
         return flask.jsonify({"status": "OK", "id": id, "data": data}), 201
@@ -82,6 +84,8 @@ def handle_request(id, method=None):
             data['name'] = 'Chat ' + id
         if 'conv' not in data:
             data['conv'] = {'messages': []}
+        else:
+            data['conv'] = {'messages': data['conv']}
         DB.execute('INSERT INTO chats (id, name, conv) VALUES (?, ?, ?)', id, data['name'], data['conv'])
         DB.save()
         return flask.jsonify({"status": "OK", "id": id, "data": data}), 201
