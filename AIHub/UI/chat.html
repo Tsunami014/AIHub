@@ -15,5 +15,44 @@
 <div class="centre">
     <script>
         insertTemplate(document.currentScript.parentElement, 'chatContainer');
+
+        async function loadData() {
+            var URL = window.location.origin;
+            if (!URL.endsWith('/')) {
+                URL += '/';
+            }
+
+            const ID = this.location.pathname.split('/')[2];
+
+            if (ID) {
+                var resp = await fetch(URL+'api/v1/chat/'+ID)
+                var data = await resp.json();
+            }
+            if (!ID || (data.status === 'error' && data.message === 'Chat not found')) {
+                var url = ID;
+                if (!ID) {
+                    url = '';
+                }
+                var resp = await fetch(URL+'api/v1/chat/'+url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                var json = await resp.json();
+                if (json.status === 'error') {
+                    alert(json.message);
+                    home();
+                    return;
+                }
+                if (!ID) {
+                    window.location.replace(URL+'chat/'+json.id);
+                    return;
+                }
+            }
+        }
+
+        loadData();
     </script>
 </div>
