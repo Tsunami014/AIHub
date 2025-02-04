@@ -5,13 +5,19 @@
         align-items: center;
         height: 100%;
     }
+    #chatContainer {
+        transition: all .25s linear;
+    }
 </style>
 
 <div class="centre">
-    <script id="hi">
-        function onChatGo() {
-            alert('GO TO CHAT!');
-        }
+    <script>
         insertTemplate(document.currentScript.parentElement, 'chatContainer');
+        function onChatGo() {
+            const cont = document.getElementById('chatContainer');
+            cont.style.width = "90%";
+            cont.style.transform = "translateY(calc(50vh - 50% - 17px))"
+            document.getElementById('chatIn').disabled = true;
+        }
     </script>
 </div>
