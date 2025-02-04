@@ -42,7 +42,6 @@ def index():
     return apply('init.html')
 
 @app.route('/api/v1/chat', methods=['POST'])
-@app.route('/api/v1/chat/', methods=['POST'])
 def newChat(method=None):
     meth = method or flask.request.method
     if meth == 'POST': # Create a new chat
@@ -71,7 +70,7 @@ def handle_request(id, method=None):
     if meth == 'GET': # Get the chat
         chat = DB.execute('SELECT * FROM chats WHERE id = ?', id)
         if chat:
-            return flask.jsonify({"status": "OK", "id": id, "data": chat}), 200
+            return flask.jsonify({"status": "OK", "id": id, "data": json.loads(chat[0][2])}), 200
         else:
             return flask.jsonify({"status": "error", "id": id, "message": "Chat not found"}), 404
     elif meth == 'POST': # Create a new chat
@@ -102,7 +101,8 @@ def handle_request(id, method=None):
             else:
                 DB.execute('UPDATE chats SET name = ?, conv = ? WHERE id = ?', data['name'], data['conv'], id)
             DB.save()
-            return flask.jsonify({"status": "OK", "id": id, "data": data}), 200
+            chat = DB.execute('SELECT * FROM chats WHERE id = ?', id)
+            return flask.jsonify({"status": "OK", "id": id, "data": json.loads(chat[0][2])}), 200
         else:
             return flask.jsonify({"status": "error", "id": id, "message": "Chat not found"}), 404
     elif meth == 'DELETE': # Delete the chat
@@ -110,14 +110,12 @@ def handle_request(id, method=None):
         if chat:
             DB.execute('DELETE FROM chats WHERE id = ?', id)
             DB.save()
-            return flask.jsonify({"status": "OK", "id": id, "data": chat}), 200
+            return flask.jsonify({"status": "OK", "id": id, "data": json.loads(chat[0][2])}), 200
         else:
             return flask.jsonify({"status": "error", "id": id, "message": "Chat not found"}), 404
     else:
         return flask.jsonify({"status": "error", "id": id, "message": f"Method {meth} not allowed for id {id}"}), 405
 
-@app.route('/chat', defaults={'id': None})
-@app.route('/chat/', defaults={'id': None})
 @app.route('/chat/<id>')
 def chat(id):
     return apply('chat.html')

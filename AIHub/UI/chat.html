@@ -25,32 +25,19 @@
             const ID = this.location.pathname.split('/')[2];
 
             if (ID) {
-                var resp = await fetch(URL+'api/v1/chat/'+ID)
+                var resp = await fetch(URL+'api/v1/chat/'+ID);
                 var data = await resp.json();
-            }
-            if (!ID || (data.status === 'error' && data.message === 'Chat not found')) {
-                var url = ID;
-                if (!ID) {
-                    url = '';
-                }
-                var resp = await fetch(URL+'api/v1/chat/'+url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                var json = await resp.json();
-                if (json.status === 'error') {
-                    alert(json.message);
+                if (data.status === 'error') {
+                    alert(data.message);
                     home();
                     return;
                 }
-                if (!ID) {
-                    window.location.replace(URL+'chat/'+json.id);
-                    return;
-                }
+            } else {
+                alert('No chat ID provided');
+                home();
+                return;
             }
+            console.log(data);
         }
 
         loadData();

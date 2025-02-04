@@ -19,8 +19,29 @@
             if (!toUrl.endsWith('/')) {
                 toUrl += '/';
             }
-            toUrl += 'chat/';
-            window.location.replace(toUrl);
+            fetch(toUrl+'api/v1/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        'messages': [
+                            {
+                                'role': 'user',
+                                'content': document.getElementById('chatIn').value
+                            }
+                        ]
+                    })
+                })
+                .then(resp => resp.json())
+                .then(json => {
+                    if (json.status === 'error') {
+                        alert(json.message);
+                        home();
+                        return;
+                    }
+                    window.location.replace(toUrl+'chat/'+json.id);
+                });
         }
 
         function onChatGo() {
