@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<head>
+    <style>
+        :root {
+            --button-hov-col: rgba(60, 70, 80, 0.12);
+            --button-active-col: rgba(75, 90, 110, 0.17);
+        }
+    
+        button {
+            border-radius: 20px;
+            border: 0px;
+            background-color: rgba(0, 0, 0, 0);
+            padding: 10px 10px;
+        }
+    
+        button:hover {
+            background-color: var(--button-hov-col);
+        }
+    
+        button:active {
+            background-color: var(--button-active-col);
+        }
+    </style>
+</head>
+<body>
+    <button>
+        <svg fill="none" height="36" stroke-width="2" viewBox="0 0 26 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="22" height="20" rx="5" ry="5"/>
+            <path d="M6 7 H7" stroke-width="2"/>
+            <path d="M6 10 H7" stroke-width="2"/>
+            <path d="M6 13 H7" stroke-width="2"/>
+            <path d="M11 22V2"/>
+        </svg>   
+    </button>       
+    
+    <div id="root"><!-- INSERT CODE --></div>
+</body>
