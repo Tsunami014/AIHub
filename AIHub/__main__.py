@@ -16,5 +16,9 @@ app = flask.Flask(__name__)
 def index():
     return apply('init.html')
 
+@app.route('/chat/<id>')
+def chat(id):
+    return apply('chat.html')
+
 if __name__ == '__main__':
     app.run()

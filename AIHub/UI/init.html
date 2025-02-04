@@ -7,17 +7,29 @@
     }
     #chatContainer {
         transition: all .25s linear;
+        width: 60%;
     }
 </style>
 
 <div class="centre">
     <script>
         insertTemplate(document.currentScript.parentElement, 'chatContainer');
+        function gotoNext() {
+            var toUrl = window.location.origin;
+            if (!toUrl.endsWith('/')) {
+                toUrl += '/';
+            }
+            toUrl += 'chat/test';
+            window.location.replace(toUrl);
+        }
+
         function onChatGo() {
             const cont = document.getElementById('chatContainer');
             cont.style.width = "90%";
             cont.style.transform = "translateY(calc(50vh - 50% - 17px))"
             document.getElementById('chatIn').disabled = true;
+
+            setTimeout(gotoNext, 250);
         }
     </script>
 </div>
