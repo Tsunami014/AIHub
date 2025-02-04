@@ -5,8 +5,10 @@
             --hov-col: rgba(60, 70, 80, 0.12);
             --active-col: rgba(75, 90, 110, 0.17);
 
-            --primary-1: rgb(190, 220, 200, 0.1);
-            --primary-2: rgb(190, 220, 220, 0.1);
+            --primary-1: light-dark(rgba(240, 255, 240), rgb(30, 35, 30));
+            --accent-1: light-dark(rgb(140, 170, 140, 0.5), rgb(60, 85, 65, 0.5));
+            --primary-2: light-dark(rgba(245, 255, 255), rgb(35, 40, 45));
+            --accent-2: light-dark(rgb(140, 150, 170, 0.5), rgb(60, 75, 85, 0.5));
         }
 
         html, body {
@@ -36,13 +38,37 @@
             background-color: var(--active-col);
         }
 
+        .visible {
+            visibility: visible;
+            opacity: 1;
+            transition: opacity 0.4s linear;
+        }
+        .hidden {
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s 0.4s, opacity 0.4s linear;
+        }
+
         .sidebar {
+            position: relative;
+            top: 0;
+            z-index: 1;
             background-color: var(--primary-1);
         }
 
+        .centre {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         #sideLeft {
+            left: 0;
             width: 260px;
-            border-right: 2px solid var(--hov-col);
+            border-right: 2px solid var(--accent-1);
+            opacity: 0.5;
+            margin-left: 0;
+            transition: margin-left 0.7s cubic-bezier(.17,.84,.44,1);
         }
 
         #main {
@@ -57,14 +83,26 @@
 
     <script>
         function init() {
-            document.getElementById("openSideLeft").onclick = function() {
-                document.getElementById("sideLeft").style.display = "block";
-                document.getElementById("openSideLeft").style.display = "none";
+            var OSL = document.getElementById("openSideLeft");
+            OSL.onclick = function() {
+                document.getElementById("sideLeft").style.marginLeft = "0";
+                if (OSL.classList.contains("visible")) {
+                    OSL.classList.replace("visible", "hidden");
+                }
+                else {
+                    OSL.classList.add("hidden");
+                }
             }
 
             document.getElementById("closeSideLeft").onclick = function() {
-                document.getElementById("sideLeft").style.display = "none";
-                document.getElementById("openSideLeft").style.display = "block";
+                var sideLeft = document.getElementById("sideLeft");
+                sideLeft.style.marginLeft = `-${sideLeft.offsetWidth}px`;
+                if (OSL.classList.contains("hidden")) {
+                    OSL.classList.replace("hidden", "visible");
+                }
+                else {
+                    OSL.classList.add("visible");
+                }
             }
         }
     </script>
@@ -82,7 +120,7 @@
         </defs>
     </svg>
 
-    <button id="openSideLeft" style="display: none;">
+    <button id="openSideLeft" class="hidden">
         <svg width="36" height="36">
             <use href="#sideLeftIcon"/>
         </svg>  
