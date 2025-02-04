@@ -2,36 +2,100 @@
 <head>
     <style>
         :root {
-            --button-hov-col: rgba(60, 70, 80, 0.12);
-            --button-active-col: rgba(75, 90, 110, 0.17);
+            --hov-col: rgba(60, 70, 80, 0.12);
+            --active-col: rgba(75, 90, 110, 0.17);
+
+            --primary-1: rgb(190, 220, 200, 0.1);
+            --primary-2: rgb(190, 220, 220, 0.1);
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
         }
     
         button {
-            border-radius: 20px;
+            border-radius: 10px;
             border: 0px;
+            margin: 8px;
             background-color: rgba(0, 0, 0, 0);
-            padding: 10px 10px;
+            padding: 10px;
         }
     
         button:hover {
-            background-color: var(--button-hov-col);
+            background-color: var(--hov-col);
         }
     
         button:active {
-            background-color: var(--button-active-col);
+            background-color: var(--active-col);
+        }
+
+        .sidebar {
+            background-color: var(--primary-1);
+        }
+
+        #sideLeft {
+            width: 260px;
+            border-right: 2px solid var(--hov-col);
+        }
+
+        #main {
+            flex-grow: 1;
+            background-color: var(--primary-2);
+        }
+
+        #openSideLeft {
+            position: fixed;
         }
     </style>
+
+    <script>
+        function init() {
+            document.getElementById("openSideLeft").onclick = function() {
+                document.getElementById("sideLeft").style.display = "block";
+                document.getElementById("openSideLeft").style.display = "none";
+            }
+
+            document.getElementById("closeSideLeft").onclick = function() {
+                document.getElementById("sideLeft").style.display = "none";
+                document.getElementById("openSideLeft").style.display = "block";
+            }
+        }
+    </script>
 </head>
-<body>
-    <button>
-        <svg fill="none" height="36" stroke-width="2" viewBox="0 0 26 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-            <rect x="2" y="2" width="22" height="20" rx="5" ry="5"/>
-            <path d="M6 7 H7" stroke-width="2"/>
-            <path d="M6 10 H7" stroke-width="2"/>
-            <path d="M6 13 H7" stroke-width="2"/>
-            <path d="M11 22V2"/>
-        </svg>   
-    </button>       
-    
-    <div id="root"><!-- INSERT CODE --></div>
+<body onload="init()">
+    <svg style="display: none;">
+        <defs>
+            <symbol id="sideLeftIcon" viewBox="0 0 26 24" fill="none" stroke-width="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="22" height="20" rx="5" ry="5"/>
+                <path d="M6 7 H7" stroke-width="2"/>
+                <path d="M6 10 H7" stroke-width="2"/>
+                <path d="M6 13 H7" stroke-width="2"/>
+                <path d="M11 22V2"/>
+            </symbol>
+        </defs>
+    </svg>
+
+    <button id="openSideLeft" style="display: none;">
+        <svg width="36" height="36">
+            <use href="#sideLeftIcon"/>
+        </svg>  
+    </button>
+
+    <div class="container">
+        <div id="sideLeft" class="sidebar">
+            <button id="closeSideLeft">
+                <svg width="36" height="36">
+                    <use href="#sideLeftIcon"/>
+                </svg> 
+            </button>
+        </div>
+        <div id="main"><!-- INSERT CODE --></div>
+    </div>
 </body>
