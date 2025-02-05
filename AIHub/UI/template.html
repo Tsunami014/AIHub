@@ -85,13 +85,18 @@
         .sidebar {
             position: relative;
             top: 0;
-            z-index: 1;
+            z-index: 2;
             background-color: white;
         }
-
         .sidebarColour {
             background-color: var(--primary-1);
+            width: 100%;
             height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .sidebarSegment {
             width: 100%;
         }
 
@@ -150,6 +155,13 @@
         }
         #chatIn {
             flex: 1;
+        }
+
+        #prevChats {
+            height: 100%;
+            overflow-y: scroll;
+            display: flex;
+            flex-direction: column;
         }
 
 
@@ -255,6 +267,32 @@
             }
         }
 
+        function findConvs() {
+            var URL = window.location.origin;
+            if (!URL.endsWith('/')) {
+                URL += '/';
+            }
+            fetch(URL+'api/v1/chat')
+                .then(resp => resp.json())
+                .then(json => {
+                    if (json.status === 'error') {
+                        alert(json.message);
+                        return;
+                    }
+                    const data = json.data;
+                    const parent = document.getElementById('prevChats');
+                    data.forEach(element => {
+                        var button = document.createElement('button');
+                        button.onclick = function() {
+                            window.location.replace(URL+'chat/'+element[0]);
+                        }
+                        button.innerText = element[1];
+                        parent.appendChild(button);
+                    });
+                });
+        }
+        findConvs();
+
         function insertTemplate(obj, id) {
             obj.appendChild(document.getElementById(id));
         }
@@ -311,6 +349,7 @@
                         <path d="M14 24H34"/>
                     </svg>
                 </button>
+                <div id="prevChats" class="sidebarSegment"></div>
             </div>
         </div>
         <div id="main"><!-- INSERT CODE --></div>

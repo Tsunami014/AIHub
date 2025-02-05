@@ -44,10 +44,12 @@ app = flask.Flask(__name__)
 def index():
     return apply('init.html')
 
-@app.route('/api/v1/chat', methods=['POST'])
+@app.route('/api/v1/chat', methods=['GET', 'POST'])
 def newChat(method=None):
     meth = method or flask.request.method
-    if meth == 'POST': # Create a new chat
+    if meth == 'GET': # Get all chats
+        return flask.jsonify({"status": "OK", "id": None, "data": DB.execute('SELECT * FROM chats')}), 200
+    elif meth == 'POST': # Create a new chat
         id = 1
         while DB.execute('SELECT * FROM chats WHERE id = ?', id):
             id += 1
