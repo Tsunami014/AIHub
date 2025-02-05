@@ -245,7 +245,7 @@
 
         function home() {
             if (!('/'.includes(window.location.pathname))) {
-                window.location.replace(window.location.origin);
+                window.location.replace('/');
             }
         }
 
@@ -268,14 +268,11 @@
         }
 
         function findConvs() {
-            var URL = window.location.origin;
-            if (!URL.endsWith('/')) {
-                URL += '/';
-            }
-            fetch(URL+'api/v1/chat')
+            fetch('/api/v1/chat')
                 .then(resp => resp.json())
                 .then(json => {
                     if (json.status === 'error') {
+                        console.error(json);
                         alert(json.message);
                         return;
                     }
@@ -284,7 +281,7 @@
                     data.forEach(element => {
                         var button = document.createElement('button');
                         button.onclick = function() {
-                            window.location.replace(URL+'chat/'+element[0]);
+                            window.location.replace('/chat/'+element[0]);
                         }
                         button.innerText = element[1];
                         parent.appendChild(button);

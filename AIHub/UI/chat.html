@@ -89,10 +89,6 @@
         }
 
         async function addMessage(role, content) {
-            var URL = window.location.origin;
-            if (!URL.endsWith('/')) {
-                URL += '/';
-            }
             const ID = this.location.pathname.split('/')[2];
             var newConv = CONV;
             newConv.push({
@@ -100,7 +96,7 @@
                 'content': content
             });
 
-            resp = await fetch(URL+'api/v1/chat/'+ID, {
+            resp = await fetch('/api/v1/chat/'+ID, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -111,6 +107,7 @@
             });
             json = await resp.json();
             if (json.status === 'error') {
+                console.error(json);
                 alert(json.message);
                 return;
             }
@@ -119,15 +116,11 @@
         }
 
         async function updateLastMessage(newContent) {
-            var URL = window.location.origin;
-            if (!URL.endsWith('/')) {
-                URL += '/';
-            }
             const ID = this.location.pathname.split('/')[2];
             var newConv = CONV;
             newConv[newConv.length - 1].content = newContent;
 
-            resp = await fetch(URL+'api/v1/chat/'+ID, {
+            resp = await fetch('/api/v1/chat/'+ID, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -138,6 +131,7 @@
             });
             json = await resp.json();
             if (json.status === 'error') {
+                console.error(json);
                 alert(json.message);
                 return;
             }
@@ -153,24 +147,31 @@
             var msg = await addMessage('bot', '', true);
             var inn = msg.firstElementChild;
             insertTemplate(inn, 'spinner');
-
+            scroll();
             var usingSpin = true;
-            function updateTxt(newTxt) {
+
+            const evtSource = new EventSource('/api/v1/ai');
+            evtSource.onmessage = function(event) {
                 if (usingSpin) {
                     usingSpin = false;
                     unuseTemplate('spinner');
                 }
+                var newTxt = event.data;
                 inn.firstElementChild.innerText = newTxt;
                 updateLastMessage(newTxt);
-            }
-
-            scroll();
-            function delay(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-            await delay(3000);
-            updateTxt('I am a bot. I am not very smart. I am just a demo.');
-            scroll();
+            };
+            evtSource.addEventListener('done', function(event) {
+                var newTxt = event.data;
+                inn.firstElementChild.innerText = newTxt;
+                updateLastMessage(newTxt);
+                evtSource.close();
+                scroll();
+            });
+            evtSource.onerror = function(event) {
+                console.error('Error:', event);
+                alert(event);
+                evtSource.close();
+            };
         }
 
         async function onChatGo() {
@@ -190,22 +191,19 @@
         }
 
         async function loadData() {
-            var URL = window.location.origin;
-            if (!URL.endsWith('/')) {
-                URL += '/';
-            }
-
             const ID = this.location.pathname.split('/')[2];
 
             if (ID) {
-                var resp = await fetch(URL+'api/v1/chat/'+ID);
+                var resp = await fetch('/api/v1/chat/'+ID);
                 var data = await resp.json();
                 if (data.status === 'error') {
+                    console.error(data);
                     alert(data.message);
                     home();
                     return;
                 }
             } else {
+                console.error('No chat ID provided');
                 alert('No chat ID provided');
                 home();
                 return;

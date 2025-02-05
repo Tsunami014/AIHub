@@ -44,6 +44,19 @@ app = flask.Flask(__name__)
 def index():
     return apply('init.html')
 
+@app.route('/api/v1/ai')
+def ai():
+    def generate():
+        import time
+        message = "Hello, world!"
+        tot = ""
+        for char in message:
+            time.sleep(0.3)
+            tot += char
+            yield f"data: {tot}\n\n"
+        yield f"event: done\ndata: {tot}\n\n"
+    return flask.Response(generate(), mimetype='text/event-stream')
+
 @app.route('/api/v1/chat', methods=['GET', 'POST'])
 def newChat(method=None):
     meth = method or flask.request.method

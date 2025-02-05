@@ -15,11 +15,7 @@
     <script>
         insertTemplate(document.currentScript.parentElement, 'chatContainer');
         function gotoNext() {
-            var toUrl = window.location.origin;
-            if (!toUrl.endsWith('/')) {
-                toUrl += '/';
-            }
-            fetch(toUrl+'api/v1/chat', {
+            fetch('/api/v1/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -36,11 +32,12 @@
                 .then(resp => resp.json())
                 .then(json => {
                     if (json.status === 'error') {
+                        console.error(json);
                         alert(json.message);
                         home();
                         return;
                     }
-                    window.location.replace(toUrl+'chat/'+json.id);
+                    window.location.replace('/chat/'+json.id);
                 });
         }
 
