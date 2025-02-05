@@ -110,6 +110,7 @@
 
         #openSideLeft {
             position: fixed;
+            z-index: 1;
         }
 
         #chatBorder {
@@ -237,19 +238,20 @@
         }
 
         function getChatTxt() {
-            if (document.getElementById('chatIn').classList.contains('placeholder')) {
+            const chatBox = document.getElementById('chatIn');
+            if (chatBox.classList.contains('placeholder')) {
                 return "";
             }
-            return document.getElementById('chatIn').innerText;
+            return chatBox.innerText;
         }
         function setChatTxt(txt) {
-
+            const chatBox = document.getElementById('chatIn');
             if (txt === "") {
-                document.getElementById('chatIn').classList.add('placeholder');
-                this.innerText = this.getAttribute("data-placeholder");
+                chatBox.classList.add('placeholder');
+                chatBox.innerText = chatBox.getAttribute("data-placeholder");
             } else {
-                document.getElementById('chatIn').classList.remove('placeholder');
-                document.getElementById('chatIn').innerText = txt;
+                chatBox.classList.remove('placeholder');
+                chatBox.innerText = txt;
             }
         }
 
