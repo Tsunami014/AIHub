@@ -20,7 +20,10 @@ class DataBase:
 );''')
     
     def execute(self, sql, *params):
-        return self.conn.execute(sql, params).fetchall()
+        try:
+            return self.conn.execute(sql, params).fetchall()
+        except sqlite3.InterfaceError: # Try again
+            return self.conn.execute(sql, params).fetchall()
     
     def save(self):
         self.conn.commit()

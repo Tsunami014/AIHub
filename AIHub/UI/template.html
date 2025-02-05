@@ -14,16 +14,19 @@
             --accent-2-light-rgb: 140, 170, 140;
             --accent-2-dark-rgb: 60, 85, 65;
             --accent-2-strong-rgb: 75, 190, 110;
+
+            --transition: cubic-bezier(.17,.84,.44,1);
+        }
+
+        * {
+            font-family: garamund;
         }
 
         *:focus {
             outline: none;
-        }
-
-        input[type="text"]:focus, button:focus {
             box-shadow: 0 0 0 2px rgba(var(--accent-2-strong-rgb), 0.5);
         }
-        .sidebar input[type="text"]:focus, .sidebar button:focus {
+        .sidebar *:focus {
             box-shadow: 0 0 0 2px rgba(var(--accent-1-strong-rgb), 0.5);
         }
         .noAccent:focus {
@@ -96,7 +99,7 @@
             left: 0;
             width: 260px;
             border-right: 2px solid light-dark(rgba(var(--accent-1-light-rgb), 0.7), rgba(var(--accent-1-dark-rgb), 0.7));
-            transition: margin-left 0.7s cubic-bezier(.17,.84,.44,1);
+            transition: margin-left 0.7s var(--transition);
         }
 
         #main {
@@ -109,12 +112,34 @@
             position: fixed;
         }
 
-        input[type="text"] {
-            font-size: 14pt;
-            padding: 10px;
+        #chatBorder {
+            background-color: white;
+            border: 2px solid light-dark(rgba(var(--accent-2-light-rgb), 0.4), rgba(var(--accent-2-dark-rgb), 0.4));
             border-radius: 10px;
+            padding: 10px 10px;
+            width: 100%;
             accent-color: rgba(var(--accent-2-strong-rgb), 0.5);
-            border: 2px solid light-dark(rgba(var(--accent-2-light-rgb), 0.2), rgba(var(--accent-2-dark-rgb), 0.2));
+            cursor: text;
+        }
+        #chatBorder:has(*:focus) {
+            box-shadow: 0 0 0 2px rgba(var(--accent-2-strong-rgb), 0.5);
+        }
+        .textarea {
+            font-size: 14pt;
+            display: block;
+            overflow: auto;
+            min-height: 40px;
+            max-height: 200px;
+            align-content: center;
+        }
+        .placeholder {
+            color: gray;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+             -khtml-user-select: none;
+               -moz-user-select: none;
+                -ms-user-select: none;
+                    user-select: none;
         }
 
         #chatContainer {
@@ -160,11 +185,68 @@
             if (!('/'.includes(window.location.pathname))) {
                 document.getElementById('newChat').classList.replace('slightlyHidden', 'visible');
             }
+
+            const editable = document.getElementById("chatIn");
+            editable.addEventListener("mousedown", function(event) {
+                if (this.classList.contains("placeholder")) {
+                    event.preventDefault(); // Prevent default caret placement
+                    const range = document.createRange();
+                    range.setStart(this, 0);
+                    range.collapse(true);
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+            });
+
+            function isPrintableKey(event) {
+                return event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey;
+            }
+            editable.addEventListener("keydown", function() {
+                if (this.classList.contains("placeholder")) {
+                    if (!isPrintableKey(event)) {
+                        event.preventDefault();
+                        return;
+                    }
+                    this.textContent = "";
+                    this.classList.remove("placeholder");
+                }
+            });
+            editable.addEventListener("input", function() {
+                if (this.textContent === "") {
+                    this.innerText = this.getAttribute("data-placeholder");
+                    this.classList.add("placeholder");
+                }
+            });
+            editable.innerText = editable.getAttribute("data-placeholder");
+
+            parent = document.getElementById('chatBorder');
+            parent.onclick = () => {
+                const firstChild = parent.firstElementChild;
+                if (firstChild) {
+                    firstChild.focus();
+                }
+            };
         }
 
         function home() {
             if (!('/'.includes(window.location.pathname))) {
                 window.location.replace(window.location.origin);
+            }
+        }
+
+        function getChatTxt() {
+            if (document.getElementById('chatIn').classList.contains('placeholder')) {
+                return "";
+            }
+            return document.getElementById('chatIn').innerText;
+        }
+        function setChatTxt(txt) {
+            document.getElementById('chatIn').innerText = txt;
+            if (txt === "") {
+                document.getElementById('chatIn').classList.add('placeholder');
+            } else {
+                document.getElementById('chatIn').classList.remove('placeholder');
             }
         }
 
@@ -189,7 +271,9 @@
             </defs>
         </svg>
         <div id="chatContainer">
-            <input type="text" id="chatIn" name="chatIn" placeholder="Message an AI" onkeydown="if(event.key === 'Enter') {onChatGo()}">
+            <div id="chatBorder">
+                <span id="chatIn" data-placeholder="Message an AI" class="textarea placeholder noAccent" role="textbox" name="chatIn" onkeydown="if(event.key === 'Enter' && !event.shiftKey) {event.preventDefault();onChatGo()}" onselectstart="return !this.classList.contains('placeholder');" contenteditable></span>
+            </div>
             <button onclick="onChatGo()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
                     <g fill="none" fill-rule="nonzero">

@@ -92,7 +92,7 @@
                 cont.disabled = true;
             }
 
-            fetch(URL+'api/v1/chat/'+ID, {
+            return fetch(URL+'api/v1/chat/'+ID, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -103,14 +103,13 @@
                 })
                 .then(resp => resp.json())
                 .then(json => {
-                    console.log(json);
                     if (disableInp) { cont.disabled = false; }
                     if (json.status === 'error') {
                         alert(json.message);
                         return;
                     }
                     CONV = json.data.messages;
-                    if (disableInp) { cont.value = ''; }
+                    if (disableInp) { setChatTxt(""); }
                     makeMessage(role, content);
                 });
         }
@@ -120,8 +119,7 @@
         }
 
         function onChatGo() {
-            addMessage('user', document.getElementById('chatIn').value, true);
-            runAI();
+            addMessage('user', getChatTxt(), true).then(() => { runAI(); });
         }
 
         async function loadData() {
@@ -145,7 +143,6 @@
                 home();
                 return;
             }
-            console.log(data);
             CONV = data.data.messages;
             CONV.forEach(element => {
                 makeMessage(element.role, element.content);
@@ -165,8 +162,9 @@
         fix_hei();
         document.getElementById('chatIn').oninput = function() {
             fix_hei();
-            if (event.key === 'Enter') {
-                onChatGo()
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                onChatGo();
             }
         }
     </script>

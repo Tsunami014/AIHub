@@ -6,7 +6,7 @@
         height: 100%;
     }
     #chatContainer {
-        transition: all .25s linear;
+        transition: all .25s var(--transition);
         width: 60%;
     }
 </style>
@@ -28,7 +28,7 @@
                         'conv': [
                             {
                                 'role': 'user',
-                                'content': document.getElementById('chatIn').value
+                                'content': getChatTxt()
                             }
                         ]
                     })
