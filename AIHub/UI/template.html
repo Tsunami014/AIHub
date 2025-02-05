@@ -16,6 +16,8 @@
             --accent-2-strong-rgb: 75, 190, 110;
 
             --transition: cubic-bezier(.17,.84,.44,1);
+
+            --topbar-height: 76px;
         }
 
         * {
@@ -103,12 +105,12 @@
         }
 
         #sideLeft {
-            border-right: 2px solid light-dark(rgba(var(--accent-1-light-rgb), 0.7), rgba(var(--accent-1-dark-rgb), 0.7));
+            border-right: 2px groove light-dark(rgba(var(--accent-1-light-rgb), 0.7), rgba(var(--accent-1-dark-rgb), 0.7));
             width: 260px;
             left: 0;
         }
         #sideRight {
-            border-left: 2px solid light-dark(rgba(var(--accent-1-light-rgb), 0.7), rgba(var(--accent-1-dark-rgb), 0.7));
+            border-left: 2px groove light-dark(rgba(var(--accent-1-light-rgb), 0.7), rgba(var(--accent-1-dark-rgb), 0.7));
             width: 260px;
             right: 0;
         }
@@ -117,9 +119,19 @@
             right: 0;
             position: absolute;
         }
+        
+        #topBar {
+            width: 100vw;
+            position: absolute;
+            background-color: var(--primary-2);
+            height: var(--topbar-height);
+            border-bottom: 2px groove light-dark(rgba(var(--accent-2-light-rgb), 0.7), rgba(var(--accent-2-dark-rgb), 0.7));
+        }
 
         #main {
             position: relative;
+            height: calc(100vh - var(--topbar-height));
+            margin-top: var(--topbar-height);
             flex-grow: 1;
             background-color: var(--primary-2);
         }
@@ -390,18 +402,6 @@
         </div>
     </div>
 
-    <button id="openSideLeft" class="noAccent hidden">
-        <svg width="36" height="36">
-            <use href="#sideLeftIcon"/>
-        </svg>  
-    </button>
-
-    <button id="openSideRight" class="noAccent">
-        <svg width="36" height="36">
-            <use href="#sideRightIcon"/>
-        </svg>  
-    </button>
-
     <div class="container">
         <div id="sideLeft" class="sidebar">
             <div class="sidebarColour">
@@ -419,6 +419,19 @@
                 </button>
                 <div id="prevChats" class="sidebarSegment"></div>
             </div>
+        </div>
+        <div id="topBar">
+            <button id="openSideLeft" class="noAccent hidden">
+                <svg width="36" height="36">
+                    <use href="#sideLeftIcon"/>
+                </svg>  
+            </button>
+        
+            <button id="openSideRight" class="noAccent">
+                <svg width="36" height="36">
+                    <use href="#sideRightIcon"/>
+                </svg>  
+            </button>
         </div>
         <div id="main"><!-- INSERT CODE --></div>
         <div id="sideRight" class="sidebar sideAnim">
