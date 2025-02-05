@@ -44,6 +44,13 @@
     .botIn {
         background-color: rgba(var(--accent-2-strong-rgb), 0.5);
     }
+    .animateFont {
+        transition: all .25s var(--transition);
+        transform: scaleX(0);
+    }
+    .anim {
+        transform: scaleX(1);
+    }
 </style>
 
 <div id="messages">
@@ -56,7 +63,7 @@
 
         var CONV = [];
 
-        function makeMessage(role, content) {
+        function makeMessage(role, content, animate = true) {
             var out = document.createElement('div');
             out.classList.add('out');
             var inn = document.createElement('div');
@@ -67,6 +74,12 @@
             } else {
                 inn.classList.add('botIn');
             }
+            if (animate) {
+                inn.classList.add('animateFont');
+                setTimeout(function(){
+                    inn.classList.add('anim');
+                }, 1)
+            }
             var p = document.createElement('p');
             p.innerText = content;
             inn.appendChild(p);
@@ -75,7 +88,7 @@
             return out;
         }
 
-        function addMessage(role, content, disableInp = false) {
+        async function addMessage(role, content, disableInp = false) {
             var URL = window.location.origin;
             if (!URL.endsWith('/')) {
                 URL += '/';
@@ -92,34 +105,44 @@
                 cont.disabled = true;
             }
 
-            return fetch(URL+'api/v1/chat/'+ID, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        'conv': CONV
-                    })
+            resp = await fetch(URL+'api/v1/chat/'+ID, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    'conv': CONV
                 })
-                .then(resp => resp.json())
-                .then(json => {
-                    if (disableInp) { cont.disabled = false; }
-                    if (json.status === 'error') {
-                        alert(json.message);
-                        return;
-                    }
-                    CONV = json.data.messages;
-                    if (disableInp) { setChatTxt(""); }
-                    makeMessage(role, content);
-                });
+            });
+            json = await resp.json();
+            if (disableInp) {
+                cont.disabled = false;
+            }
+            if (json.status === 'error') {
+                alert(json.message);
+                return;
+            }
+            CONV = json.data.messages;
+            if (disableInp) {
+                setChatTxt("");
+            }
+            makeMessage(role, content);
         }
 
-        function runAI() {
-            addMessage('bot', 'Hello, how may I help you?', true);
+        function scroll() {
+            const scrollable = document.getElementById('messages');
+            scrollable.scrollTo({ top: scrollable.scrollHeight, behavior: 'smooth' });
         }
 
-        function onChatGo() {
-            addMessage('user', getChatTxt(), true).then(() => { runAI(); });
+        async function runAI() {
+            await addMessage('bot', 'Hello, how may I help you?', true);
+            scroll();
+        }
+
+        async function onChatGo() {
+            await addMessage('user', getChatTxt(), true);
+            scroll();
+            await runAI();
         }
 
         async function loadData() {
@@ -145,8 +168,10 @@
             }
             CONV = data.data.messages;
             CONV.forEach(element => {
-                makeMessage(element.role, element.content);
+                makeMessage(element.role, element.content, false);
             });
+            const scrollable = document.getElementById('messages');
+            scrollable.scrollTo({ top: scrollable.scrollHeight });
             if (CONV.length < 2) { // First message; came straight from init
                 runAI();
             }
@@ -156,7 +181,7 @@
 
         function fix_hei() {
             const cont = document.getElementById('chatContainer');
-            const hei = cont.offsetHeight + 34;
+            const hei = cont.offsetHeight + 54;
             document.getElementById('spacer').style.height = hei + 'px';
         }
         fix_hei();
