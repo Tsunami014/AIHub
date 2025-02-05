@@ -205,7 +205,6 @@
             editable.addEventListener("keydown", function() {
                 if (this.classList.contains("placeholder")) {
                     if (!isPrintableKey(event)) {
-                        event.preventDefault();
                         return;
                     }
                     this.textContent = "";
@@ -214,8 +213,10 @@
             });
             editable.addEventListener("input", function() {
                 if (this.textContent === "") {
-                    this.innerText = this.getAttribute("data-placeholder");
                     this.classList.add("placeholder");
+                }
+                if (this.classList.contains("placeholder")) {
+                    this.innerText = this.getAttribute("data-placeholder");
                 }
             });
             editable.innerText = editable.getAttribute("data-placeholder");
@@ -242,11 +243,13 @@
             return document.getElementById('chatIn').innerText;
         }
         function setChatTxt(txt) {
-            document.getElementById('chatIn').innerText = txt;
+
             if (txt === "") {
                 document.getElementById('chatIn').classList.add('placeholder');
+                this.innerText = this.getAttribute("data-placeholder");
             } else {
                 document.getElementById('chatIn').classList.remove('placeholder');
+                document.getElementById('chatIn').innerText = txt;
             }
         }
 

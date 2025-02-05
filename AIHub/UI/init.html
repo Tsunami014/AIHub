@@ -45,6 +45,10 @@
         }
 
         function onChatGo() {
+            const txt = getChatTxt();
+            if (txt.trim() === "") {
+                return;
+            }
             const cont = document.getElementById('chatContainer');
             cont.style.width = "90%";
             cont.style.transform = "translateY(calc(50vh - 50% - 17px))"

@@ -140,7 +140,13 @@
         }
 
         async function onChatGo() {
-            await addMessage('user', getChatTxt(), true);
+            const txt = getChatTxt();
+            if (txt === "") {
+                return;
+            }
+            if (txt.trim()) {
+                await addMessage('user', txt, true);
+            }
             scroll();
             await runAI();
         }
@@ -167,13 +173,18 @@
                 return;
             }
             CONV = data.data.messages;
-            CONV.forEach(element => {
-                makeMessage(element.role, element.content, false);
-            });
-            const scrollable = document.getElementById('messages');
-            scrollable.scrollTo({ top: scrollable.scrollHeight });
             if (CONV.length < 2) { // First message; came straight from init
+                CONV.forEach(element => {
+                    makeMessage(element.role, element.content);
+                });
+                scroll();
                 runAI();
+            } else {
+                CONV.forEach(element => {
+                    makeMessage(element.role, element.content, false);
+                });
+                const scrollable = document.getElementById('messages');
+                scrollable.scrollTo({ top: scrollable.scrollHeight });
             }
         }
 
@@ -185,12 +196,8 @@
             document.getElementById('spacer').style.height = hei + 'px';
         }
         fix_hei();
-        document.getElementById('chatIn').oninput = function() {
+        document.getElementById('chatIn').addEventListener("input", function() {
             fix_hei();
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                onChatGo();
-            }
-        }
+        });
     </script>
 </div>
