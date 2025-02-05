@@ -13,13 +13,12 @@
     }
 
     #messages {
-        display: flex;
-        flex-direction: column;
         height: 100%;
         width: 100%;
         top: 0;
         left: 0;
         position: absolute;
+        overflow-y: scroll;
     }
     .out {
         height: fit-content;
@@ -47,6 +46,10 @@
     }
 </style>
 
+<div id="messages">
+    <div id="messageBubbles"></div>
+    <div id="spacer"></div>
+</div>
 <div class="centre">
     <script>
         insertTemplate(document.currentScript.parentElement, 'chatContainer');
@@ -68,7 +71,7 @@
             p.innerText = content;
             inn.appendChild(p);
             out.appendChild(inn);
-            document.getElementById('messages').appendChild(out);
+            document.getElementById('messageBubbles').appendChild(out);
             return out;
         }
 
@@ -153,6 +156,18 @@
         }
 
         loadData();
+
+        function fix_hei() {
+            const cont = document.getElementById('chatContainer');
+            const hei = cont.offsetHeight + 34;
+            document.getElementById('spacer').style.height = hei + 'px';
+        }
+        fix_hei();
+        document.getElementById('chatIn').oninput = function() {
+            fix_hei();
+            if (event.key === 'Enter') {
+                onChatGo()
+            }
+        }
     </script>
 </div>
-<div id="messages"></div>
