@@ -126,7 +126,7 @@
             if (disableInp) {
                 setChatTxt("");
             }
-            makeMessage(role, content);
+            return makeMessage(role, content);
         }
 
         function scroll() {
@@ -135,7 +135,25 @@
         }
 
         async function runAI() {
-            await addMessage('bot', 'Hello, how may I help you?', true);
+            var msg = await addMessage('bot', '', true);
+            var inn = msg.firstElementChild;
+            insertTemplate(inn, 'spinner');
+
+            var usingSpin = true;
+            function updateTxt(newTxt) {
+                if (usingSpin) {
+                    usingSpin = false;
+                    unuseTemplate('spinner');
+                }
+                inn.firstElementChild.innerText = newTxt;
+            }
+
+            scroll();
+            function delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            await delay(1000);
+            updateTxt('I am a bot. I am not very smart. I am just a demo.');
             scroll();
         }
 
