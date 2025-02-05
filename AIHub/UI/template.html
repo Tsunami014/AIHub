@@ -42,6 +42,7 @@
         .container {
             display: flex;
             height: 100vh;
+            overflow: hidden;
         }
     
         button {
@@ -84,6 +85,7 @@
 
         .sidebar {
             position: relative;
+            transition: width 0.7s var(--transition);
             top: 0;
             z-index: 2;
             background-color: white;
@@ -101,10 +103,19 @@
         }
 
         #sideLeft {
-            left: 0;
-            width: 260px;
             border-right: 2px solid light-dark(rgba(var(--accent-1-light-rgb), 0.7), rgba(var(--accent-1-dark-rgb), 0.7));
-            transition: margin-left 0.7s var(--transition);
+            width: 260px;
+            left: 0;
+        }
+        #sideRight {
+            border-left: 2px solid light-dark(rgba(var(--accent-1-light-rgb), 0.7), rgba(var(--accent-1-dark-rgb), 0.7));
+            width: 260px;
+            right: 0;
+        }
+
+        #closeSideRight {
+            right: 0;
+            position: absolute;
         }
 
         #main {
@@ -115,6 +126,11 @@
 
         #openSideLeft {
             position: fixed;
+            z-index: 1;
+        }
+        #openSideRight {
+            position: fixed;
+            right: 0;
             z-index: 1;
         }
 
@@ -165,6 +181,12 @@
         }
 
 
+        .sideAnim {
+            width: 0 !important;
+            border: none !important;
+            pointer-events: none !important;
+        }
+        
         #defs {
             display: none !important;
         }
@@ -175,7 +197,7 @@
             var OSL = document.getElementById("openSideLeft");
             OSL.onclick = function() {
                 var sideLeft = document.getElementById("sideLeft");
-                sideLeft.style.marginLeft = "0"
+                sideLeft.classList.remove("sideAnim");
                 if (OSL.classList.contains("visible")) {
                     OSL.classList.replace("visible", "hidden");
                 }
@@ -186,12 +208,35 @@
 
             document.getElementById("closeSideLeft").onclick = function() {
                 var sideLeft = document.getElementById("sideLeft");
-                sideLeft.style.marginLeft = `-${sideLeft.offsetWidth}px`;
+                sideLeft.classList.add("sideAnim");
                 if (OSL.classList.contains("hidden")) {
                     OSL.classList.replace("hidden", "visible");
                 }
                 else {
                     OSL.classList.add("visible");
+                }
+            }
+
+            var OSR = document.getElementById("openSideRight");
+            OSR.onclick = function() {
+                var sideRight = document.getElementById("sideRight");
+                sideRight.classList.remove("sideAnim");
+                if (OSR.classList.contains("visible")) {
+                    OSR.classList.replace("visible", "hidden");
+                }
+                else {
+                    OSR.classList.add("hidden");
+                }
+            }
+
+            document.getElementById("closeSideRight").onclick = function() {
+                var sideRight = document.getElementById("sideRight");
+                sideRight.classList.add("sideAnim");
+                if (OSR.classList.contains("hidden")) {
+                    OSR.classList.replace("hidden", "visible");
+                }
+                else {
+                    OSR.classList.add("visible");
                 }
             }
 
@@ -314,6 +359,14 @@
                     <path d="M6 13 H7" stroke-width="2"/>
                     <path d="M11 22V2"/>
                 </symbol>
+
+                <symbol id="sideRightIcon" viewBox="0 0 26 24" fill="none" stroke-width="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="22" height="20" rx="5" ry="5"/>
+                    <path d="M20 7 H19" stroke-width="2"/>
+                    <path d="M20 10 H19" stroke-width="2"/>
+                    <path d="M20 13 H19" stroke-width="2"/>
+                    <path d="M15 22V2"/>
+                </symbol>
             </defs>
         </svg>
         <svg id="spinner" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -343,6 +396,12 @@
         </svg>  
     </button>
 
+    <button id="openSideRight" class="noAccent">
+        <svg width="36" height="36">
+            <use href="#sideRightIcon"/>
+        </svg>  
+    </button>
+
     <div class="container">
         <div id="sideLeft" class="sidebar">
             <div class="sidebarColour">
@@ -362,5 +421,14 @@
             </div>
         </div>
         <div id="main"><!-- INSERT CODE --></div>
+        <div id="sideRight" class="sidebar rightAnim">
+            <div class="sidebarColour">
+                <button id="closeSideRight" class="noAccent">
+                    <svg width="36" height="36">
+                        <use href="#sideRightIcon"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
     </div>
 </body>
