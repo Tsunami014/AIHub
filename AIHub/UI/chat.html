@@ -88,7 +88,7 @@
             return out;
         }
 
-        async function addMessage(role, content, disableInp = false) {
+        async function addMessage(role, content) {
             var URL = window.location.origin;
             if (!URL.endsWith('/')) {
                 URL += '/';
@@ -99,11 +99,6 @@
                 'role': role,
                 'content': content
             });
-            var cont;
-            if (disableInp) {
-                cont = document.getElementById('chatIn');
-                cont.disabled = true;
-            }
 
             resp = await fetch(URL+'api/v1/chat/'+ID, {
                 method: 'PUT',
@@ -115,18 +110,38 @@
                 })
             });
             json = await resp.json();
-            if (disableInp) {
-                cont.disabled = false;
-            }
             if (json.status === 'error') {
                 alert(json.message);
                 return;
             }
             CONV = json.data.messages;
-            if (disableInp) {
-                setChatTxt("");
-            }
             return makeMessage(role, content);
+        }
+
+        async function updateLastMessage(newContent) {
+            var URL = window.location.origin;
+            if (!URL.endsWith('/')) {
+                URL += '/';
+            }
+            const ID = this.location.pathname.split('/')[2];
+            var newConv = CONV;
+            newConv[newConv.length - 1].content = newContent;
+
+            resp = await fetch(URL+'api/v1/chat/'+ID, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    'conv': CONV
+                })
+            });
+            json = await resp.json();
+            if (json.status === 'error') {
+                alert(json.message);
+                return;
+            }
+            CONV = json.data.messages;
         }
 
         function scroll() {
@@ -146,18 +161,21 @@
                     unuseTemplate('spinner');
                 }
                 inn.firstElementChild.innerText = newTxt;
+                updateLastMessage(newTxt);
             }
 
             scroll();
             function delay(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
             }
-            await delay(1000);
+            await delay(3000);
             updateTxt('I am a bot. I am not very smart. I am just a demo.');
             scroll();
         }
 
         async function onChatGo() {
+            cont = document.getElementById('chatIn');
+            cont.disabled = true;
             const txt = getChatTxt();
             if (txt === "") {
                 return;
@@ -165,8 +183,10 @@
             if (txt.trim()) {
                 await addMessage('user', txt, true);
             }
+            setChatTxt("");
             scroll();
             await runAI();
+            cont.disabled = false;
         }
 
         async function loadData() {
