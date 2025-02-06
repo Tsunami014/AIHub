@@ -116,11 +116,6 @@
             width: 260px;
             right: 0;
         }
-
-        #closeSideRight {
-            right: 0;
-            position: absolute;
-        }
         
         #topBar {
             width: 100vw;
@@ -190,6 +185,17 @@
             overflow-y: scroll;
             display: flex;
             flex-direction: column;
+        }
+
+        #RightSettings {
+            width: 100%;
+            text-align: center;
+        }
+        #rightCloseButtonContainer {
+            width: 100%;
+            height: fit-content;
+            display: flex;
+            justify-content: end;
         }
 
 
@@ -469,11 +475,18 @@
         <div id="main"><!-- INSERT CODE --></div>
         <div id="sideRight" class="sidebar">
             <div class="sidebarColour">
-                <button id="closeSideRight" class="noAccent">
-                    <svg width="36" height="36">
-                        <use href="#sideRightIcon"/>
-                    </svg>
-                </button>
+                <div id="rightCloseButtonContainer">
+                    <button id="closeSideRight" class="noAccent">
+                        <svg width="36" height="36">
+                            <use href="#sideRightIcon"/>
+                        </svg>
+                    </button>
+                </div>
+                <div id="RightSettings">
+                    <h2>Chatbot</h2>
+                    <hr>
+                    <h2>Prompt settings</h2>
+                </div>
             </div>
         </div>
     </div>
