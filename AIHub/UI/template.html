@@ -87,10 +87,12 @@
 
         .sidebar {
             position: relative;
-            transition: width 0.7s var(--transition);
             top: 0;
             z-index: 2;
             background-color: white;
+        }
+        .sidebarTrans {
+            transition: width 0.7s var(--transition);
         }
         .sidebarColour {
             background-color: var(--primary-1);
@@ -138,12 +140,10 @@
 
         #openSideLeft {
             position: fixed;
-            z-index: 1;
         }
         #openSideRight {
             position: fixed;
             right: 0;
-            z-index: 1;
         }
 
         #chatBorder {
@@ -216,9 +216,10 @@
                 else {
                     OSL.classList.add("hidden");
                 }
+                localStorage.setItem('LeftSideOpen', true);
             }
 
-            document.getElementById("closeSideLeft").onclick = function() {
+            function CloseLeft() {
                 var sideLeft = document.getElementById("sideLeft");
                 sideLeft.classList.add("sideAnim");
                 if (OSL.classList.contains("hidden")) {
@@ -227,6 +228,22 @@
                 else {
                     OSL.classList.add("visible");
                 }
+                localStorage.setItem('LeftSideOpen', false);
+            }
+
+            document.getElementById("closeSideLeft").onclick = CloseLeft;
+            
+            if (localStorage.getItem('LeftSideOpen') === 'false') {
+                CloseLeft();
+                requestAnimationFrame(function(){
+                    sideLeft.style.transition = 'none';
+                    // Force reflow
+                    void sideLeft.offsetWidth;
+                    sideLeft.style.transition = '';
+                    sideLeft.classList.add('sidebarTrans');
+                });
+            } else {
+                document.getElementById('sideLeft').classList.add('sidebarTrans');
             }
 
             var OSR = document.getElementById("openSideRight");
@@ -239,9 +256,10 @@
                 else {
                     OSR.classList.add("hidden");
                 }
+                localStorage.setItem('RightSideOpen', true);
             }
 
-            document.getElementById("closeSideRight").onclick = function() {
+            function CloseRight() {
                 var sideRight = document.getElementById("sideRight");
                 sideRight.classList.add("sideAnim");
                 if (OSR.classList.contains("hidden")) {
@@ -250,6 +268,21 @@
                 else {
                     OSR.classList.add("visible");
                 }
+                localStorage.setItem('RightSideOpen', false);
+            }
+            document.getElementById("closeSideRight").onclick = CloseRight;
+
+            if (!localStorage.getItem('RightSideOpen') || localStorage.getItem('RightSideOpen') === 'false') {
+                CloseRight();
+                requestAnimationFrame(function(){
+                    sideRight.style.transition = 'none';
+                    // Force reflow
+                    void sideRight.offsetWidth;
+                    sideRight.style.transition = '';
+                    sideRight.classList.add('sidebarTrans');
+                });
+            } else {
+                document.getElementById('sideRight').classList.add('sidebarTrans');
             }
 
             if (!('/'.includes(window.location.pathname))) {
@@ -427,14 +460,14 @@
                 </svg>  
             </button>
         
-            <button id="openSideRight" class="noAccent">
+            <button id="openSideRight" class="noAccent hidden">
                 <svg width="36" height="36">
                     <use href="#sideRightIcon"/>
                 </svg>  
             </button>
         </div>
         <div id="main"><!-- INSERT CODE --></div>
-        <div id="sideRight" class="sidebar sideAnim">
+        <div id="sideRight" class="sidebar">
             <div class="sidebarColour">
                 <button id="closeSideRight" class="noAccent">
                     <svg width="36" height="36">
