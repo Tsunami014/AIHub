@@ -47,6 +47,7 @@ def index():
 
 @app.route('/api/v1/ai/run/<model>')
 def aiRun(model):
+    print('running', model)
     def generate():
         import time
         message = "Hello, world!"
@@ -61,6 +62,10 @@ def aiRun(model):
 @app.route('/api/v1/ai/get')
 def getProvs():
     return flask.jsonify({'data': [[str(i), i.getHierachy()] for i in (getattr(providers, j) for j in providers.__all__ if j != 'BaseProvider')]}), 200
+
+@app.route('/api/v1/ai/info/<model>')
+def info(model):
+    return flask.jsonify({'data': f'MODEL SELECTED: {model}'}), 200
 
 @app.route('/api/v1/chat', methods=['GET', 'POST'])
 def newChat(method=None):

@@ -207,6 +207,13 @@
             border-color: rgba(var(--accent-2-light-rgb), 0.7);
         }
 
+        #AIText {
+            font-size: small;
+            font-style: italic;
+            color: darkslategray;
+            margin: 10px;
+        }
+
 
         .sideAnim {
             width: 0 !important;
@@ -348,6 +355,14 @@
                 }
             };
 
+            function UpdateText() {
+                fetch('/api/v1/ai/info/'+PROVIDER)
+                    .then(resp => resp.json())
+                    .then(data => {
+                        document.getElementById('AIText').innerText = data.data;
+                    });
+            }
+
             fetch('/api/v1/ai/get')
                 .then(resp => resp.json())
                 .then(data => {
@@ -367,6 +382,7 @@
                             } else {
                                 PROVIDER = prov+this.value;
                             }
+                            UpdateText();
                             localStorage.setItem('hierachy', PROVIDER);
                             this.blur();
                         };
@@ -410,6 +426,7 @@
                         PROVIDER = localStorage.getItem('hierachy');
                     }
                     hierachyBranch(data.data, 0, '', localStorage.getItem('hierachy'));
+                    UpdateText();
                 })
         }
 
@@ -568,6 +585,7 @@
                     <h2>Chatbot</h2>
                     <p>AI Service:</p>
                     <div id="AIDropdowns"></div>
+                    <p id="AIText"></p>
                     <hr>
                     <h2>Prompt settings</h2>
                 </div>
