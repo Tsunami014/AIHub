@@ -89,7 +89,7 @@
             position: relative;
             top: 0;
             z-index: 2;
-            background-color: white;
+            background-color: whitesmoke;
         }
         .sidebarTrans {
             transition: width 0.7s var(--transition);
@@ -142,7 +142,7 @@
         }
 
         #chatBorder {
-            background-color: white;
+            background-color: whitesmoke;
             border: 2px solid light-dark(rgba(var(--accent-2-light-rgb), 0.4), rgba(var(--accent-2-dark-rgb), 0.4));
             border-radius: 10px;
             padding: 10px 10px;
@@ -198,6 +198,15 @@
             justify-content: end;
         }
 
+        select {
+            width: calc(100% - 10px);
+            padding: 7px;
+            margin: 5px 5px;
+            background-color: whitesmoke;
+            border-radius: 10px;
+            border-color: rgba(var(--accent-2-light-rgb), 0.7);
+        }
+
 
         .sideAnim {
             width: 0 !important;
@@ -211,6 +220,7 @@
     </style>
 
     <script>
+        var PROVIDER = 'best';
         function init() {
             var OSL = document.getElementById("openSideLeft");
             OSL.onclick = function() {
@@ -337,6 +347,53 @@
                     firstChild.focus();
                 }
             };
+
+            fetch('/api/v1/ai/get')
+                .then(resp => resp.json())
+                .then(data => {
+                    const modeSels = document.getElementById('AIDropdowns');
+                    function hierachyBranch(branch, befores, prov) {
+                        var select = document.createElement('select');
+                        select.onchange = function() {
+                            var times = modeSels.children.length-befores-1
+                            for (i = 0;i < times; i++) {
+                                modeSels.removeChild(modeSels.children[befores+1]);
+                            }
+                            if (!isNaN(this.value) && !isNaN(parseFloat(this.value))) {
+                                const val = branch[this.value]
+                                PROVIDER = prov+val[0]+':';
+                                hierachyBranch(val[1], befores+1, PROVIDER);
+                                PROVIDER += 'best';
+                            } else {
+                                PROVIDER = prov+this.value;
+                            }
+                            this.blur();
+                        };
+                        ['best', 'random'].forEach(val => {
+                            var optionA = document.createElement('option');
+                            optionA.value = val;
+                            optionA.textContent = val;
+                            select.appendChild(optionA);
+                        });
+                        
+                        var group = document.createElement('optgroup');
+                        group.label = 'Provider choices:';
+                        branch.forEach((val, idx) => {
+                            var option = document.createElement('option');
+                            if (Array.isArray(val)) {
+                                option.value = idx;
+                                option.textContent = val[0] + ' ...';
+                            } else {
+                                option.value = val;
+                                option.textContent = val;
+                            }
+                            group.appendChild(option);
+                        });
+                        select.appendChild(group);
+                        modeSels.appendChild(select);
+                    }
+                    hierachyBranch(data.data, 0, '');
+                })
         }
 
         function home() {
@@ -385,6 +442,14 @@
                 });
         }
         findConvs();
+
+        document.addEventListener('click', function(event) {
+            document.querySelectorAll('select').forEach(function(select) {
+                if (!select.contains(event.target)) {
+                    select.blur();
+                }
+            });
+        });
 
         function insertTemplate(obj, id) {
             obj.appendChild(document.getElementById(id));
@@ -484,6 +549,8 @@
                 </div>
                 <div id="RightSettings">
                     <h2>Chatbot</h2>
+                    <p>AI Service:</p>
+                    <div id="AIDropdowns"></div>
                     <hr>
                     <h2>Prompt settings</h2>
                 </div>

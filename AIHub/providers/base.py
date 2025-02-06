@@ -6,7 +6,11 @@ __all__ = [
     'TestProvider'
 ]
 
-class BaseProvider:
+class MetaAbc(type):
+    def __str__(cls):
+        return cls.NAME
+
+class BaseProvider(metaclass=MetaAbc):
     def stream(self, model, conv):
         """
         # How to use
@@ -18,22 +22,30 @@ class BaseProvider:
         """
         yield "event: done\ndata: Hello, world!\n\n"
     
-    def getModels(self):
+    @staticmethod
+    def getHierachy():
         return []
     
-    def __str__(self):
-        """Also is used for the provider's name"""
-        return 'BaseProvider'
+    NAME = 'Base Provider'
+    def __str__(cls):
+        return '<BaseProvider>'
+    
+    def __repr__(self):
+        return str(self)
 
 class TestProvider(BaseProvider):
-    def stream(self, model, conv):
-        message = {
-            'Hello-world': 'Hello, world!', 
-            'Hello-AIHub': 'Hello, AIHub!', 
-            'Testing': 'Testing...', 
-            'I-am-bot!': 'I am bot! Who you are?', 
-            'No-idea': 'I have no idea what I am doing!'
-        }[model]
+    def stream(self, modeldat, conv):
+        model = modeldat.split(':')
+        if len(model) == 1:
+            message = {
+                'Hello-world': 'Hello, world!', 
+                'Hello-AIHub': 'Hello, AIHub!', 
+                'Testing': 'Testing...', 
+                'I-am-bot!': 'I am bot! Who you are?', 
+                'No-idea': 'I have no idea what I am doing!'
+            }[model[0]]
+        elif model[0] == 'echo':
+            message = conv[-1]['message']
         tot = ""
         for char in message:
             time.sleep(random.random()*2+2)
@@ -41,8 +53,10 @@ class TestProvider(BaseProvider):
             yield f"data: {tot}\n\n"
         yield f"event: done\ndata: {tot}\n\n"
     
-    def getModels(self):
-        return ['Hello-world', 'Hello-AIHub', 'Testing', 'I-am-bot', 'No-idea']
+    @staticmethod
+    def getHierachy():
+        return ['Hello-world', 'Hello-AIHub', 'Testing', 'I-am-bot', 'No-idea', ['echo', ['all', 'last']]]
     
-    def __str__(self):
-        return 'TestProvider'
+    NAME = 'Test Provider'
+    def __str__(cls):
+        return '<TestProvider>'

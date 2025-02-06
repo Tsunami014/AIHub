@@ -1,5 +1,6 @@
-import json
+from AIHub import providers
 from werkzeug.exceptions import BadRequest
+import json
 import flask
 import sqlite3
 import os
@@ -44,8 +45,8 @@ app = flask.Flask(__name__)
 def index():
     return apply('init.html')
 
-@app.route('/api/v1/ai')
-def ai():
+@app.route('/api/v1/ai/run/<model>')
+def aiRun(model):
     def generate():
         import time
         message = "Hello, world!"
@@ -56,6 +57,10 @@ def ai():
             yield f"data: {tot}\n\n"
         yield f"event: done\ndata: {tot}\n\n"
     return flask.Response(generate(), mimetype='text/event-stream')
+
+@app.route('/api/v1/ai/get')
+def getProvs():
+    return flask.jsonify({'data': [[str(i), i.getHierachy()] for i in (getattr(providers, j) for j in providers.__all__ if j != 'BaseProvider')]}), 200
 
 @app.route('/api/v1/chat', methods=['GET', 'POST'])
 def newChat(method=None):

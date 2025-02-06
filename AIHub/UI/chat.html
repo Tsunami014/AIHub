@@ -150,7 +150,7 @@
             scroll();
             var usingSpin = true;
 
-            const evtSource = new EventSource('/api/v1/ai');
+            const evtSource = new EventSource('/api/v1/ai/run/test');
             evtSource.onmessage = function(event) {
                 if (usingSpin) {
                     usingSpin = false;
