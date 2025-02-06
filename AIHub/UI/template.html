@@ -352,7 +352,7 @@
                 .then(resp => resp.json())
                 .then(data => {
                     const modeSels = document.getElementById('AIDropdowns');
-                    function hierachyBranch(branch, befores, prov) {
+                    function hierachyBranch(branch, befores, prov, restoreBranch=null) {
                         var select = document.createElement('select');
                         select.onchange = function() {
                             var times = modeSels.children.length-befores-1
@@ -367,6 +367,7 @@
                             } else {
                                 PROVIDER = prov+this.value;
                             }
+                            localStorage.setItem('hierachy', PROVIDER);
                             this.blur();
                         };
                         ['best', 'random'].forEach(val => {
@@ -391,8 +392,24 @@
                         });
                         select.appendChild(group);
                         modeSels.appendChild(select);
+
+                        if (restoreBranch) {
+                            var colIdx = restoreBranch.indexOf(':');
+                            if (colIdx !== -1) {
+                                let bef = restoreBranch.slice(0, colIdx);
+                                let aft = restoreBranch.slice(colIdx+1);
+                                let idx = branch.findIndex(val => val[0] === bef);
+                                select.value = idx;
+                                hierachyBranch(branch[idx][1], befores+1, prov+bef+':', aft);
+                            } else {
+                                select.value = restoreBranch;
+                            }
+                        }
                     }
-                    hierachyBranch(data.data, 0, '');
+                    if (localStorage.getItem('hierachy')) {
+                        PROVIDER = localStorage.getItem('hierachy');
+                    }
+                    hierachyBranch(data.data, 0, '', localStorage.getItem('hierachy'));
                 })
         }
 
