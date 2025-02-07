@@ -47,7 +47,7 @@
             overflow: hidden;
         }
     
-        button {
+        button, *[role="button"] {
             border-radius: 10px;
             border: 0px;
             margin: 8px;
@@ -55,11 +55,11 @@
             padding: 10px;
         }
     
-        button:hover {
+        button:hover, *[role="button"]:hover {
             background-color: var(--hov-col);
         }
     
-        button:active {
+        button:active, *[role="button"]:active {
             background-color: var(--active-col);
         }
 
@@ -192,10 +192,6 @@
             align-items: center;
             justify-content: center;
             width: calc(100% - 8px * 2);
-        }
-        .moreBtnSvg {
-            height: 38px;
-            width: 30px;
         }
         .moreBtn {
             position: absolute;
@@ -491,40 +487,25 @@
                     const data = json.data;
                     const parent = document.getElementById('prevChats');
                     data.forEach(element => {
-                        var parentDiv = document.createElement('div');
-                        var button = document.createElement('button');
+                        var parentDiv = copyTemplate('PrevChatBtn');
+                        var button = parentDiv.firstElementChild;
                         button.onclick = function() {
                             window.location.replace('/chat/'+element[0]);
                         }
-                        button.innerText = element[1];
+                        button.firstElementChild.innerText = element[1];
 
-                        button.classList.add('prevChatBtn');
-
-                        var btn2 = document.createElement("button");
-                        btn2.classList.add('moreBtn');
+                        var btn2 = button.lastElementChild;
 
                         btn2.onclick = function(event) {
                             event.stopPropagation();
                             const MP = document.getElementById('morePage');
-                            if (MP.parentElement.id !== "defs" && (!MP.contains(event.target))) {
+                            if (MP.parentElement.id !== "defs" && (!MP.contains(event.target)) && parentDiv.contains(MP)) {
                                 unuseTemplate('morePage');
                             } else {
                                 insertTemplate(parentDiv, 'morePage');
                             }
                         };
 
-                        const svgNS = "http://www.w3.org/2000/svg";
-
-                        var svg = document.createElementNS(svgNS, "svg");
-                        svg.classList.add('moreBtnSvg');
-
-                        var useElement = document.createElementNS(svgNS, "use");
-                        useElement.setAttribute("href", "#more");
-
-                        svg.appendChild(useElement);
-                        btn2.appendChild(svg);
-                        button.appendChild(btn2);
-                        parentDiv.appendChild(button);
                         parent.appendChild(parentDiv);
                     });
                 });
@@ -550,6 +531,12 @@
 
         function insertTemplate(obj, id) {
             obj.appendChild(document.getElementById(id));
+        }
+
+        function copyTemplate(id) {
+            const newElm = document.getElementById(id).cloneNode(true);
+            newElm.removeAttribute('id');
+            return newElm;
         }
 
         function unuseTemplate(id) {
@@ -605,6 +592,16 @@
                         <path fill="#09244B" d="M20.25 3.532a1 1 0 0 1 1.183 1.329l-6 15.5a1 1 0 0 1-1.624.362l-3.382-3.235-1.203 1.202c-.636.636-1.724.186-1.724-.714v-3.288L2.309 9.723a1 1 0 0 1 .442-1.691l17.5-4.5Zm-2.114 4.305-7.998 6.607 3.97 3.798 4.028-10.405Zm-1.578-1.29L4.991 9.52l3.692 3.53 7.875-6.505Z"/>
                     </g>
                 </svg>
+            </button>
+        </div>
+        <div id="PrevChatBtn">
+            <button class="prevChatBtn">
+                <span></span>
+                <div class="moreBtn" role="button" tabindex="0">
+                    <svg class="moreBtnSvg" height="38" width="30">
+                        <use href="#more"/>
+                    </svg>
+                </div>
             </button>
         </div>
         <div id="morePage">
