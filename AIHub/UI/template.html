@@ -191,16 +191,25 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            width: calc(100% - 8px * 2);
         }
         .moreBtnSvg {
-            height: 36px;
+            height: 38px;
             width: 30px;
         }
         .moreBtn {
             position: absolute;
             display: flex;
             right: 0;
-            padding: 0px 12px;
+            padding: 0px 10px;
+        }
+
+        #morePage {
+            background-color: white;
+            border: 2px solid rgba(var(--accent-1-light-rgb), 0.7);
+            border-radius: 10px;
+            margin: 20px;
+            padding: 1px 15px;
         }
 
         #RightSettings {
@@ -482,6 +491,7 @@
                     const data = json.data;
                     const parent = document.getElementById('prevChats');
                     data.forEach(element => {
+                        var parentDiv = document.createElement('div');
                         var button = document.createElement('button');
                         button.onclick = function() {
                             window.location.replace('/chat/'+element[0]);
@@ -495,7 +505,12 @@
 
                         btn2.onclick = function(event) {
                             event.stopPropagation();
-                            console.log('btn2 clicked!');
+                            const MP = document.getElementById('morePage');
+                            if (MP.parentElement.id !== "defs" && (!MP.contains(event.target))) {
+                                unuseTemplate('morePage');
+                            } else {
+                                insertTemplate(parentDiv, 'morePage');
+                            }
                         };
 
                         const svgNS = "http://www.w3.org/2000/svg";
@@ -509,18 +524,28 @@
                         svg.appendChild(useElement);
                         btn2.appendChild(svg);
                         button.appendChild(btn2);
-                        parent.appendChild(button);
+                        parentDiv.appendChild(button);
+                        parent.appendChild(parentDiv);
                     });
                 });
         }
         findConvs();
 
         document.addEventListener('click', function(event) {
+            if (event.target.closest('.moreBtn')) {
+                return;
+            }
+
             document.querySelectorAll('select').forEach(function(select) {
                 if (!select.contains(event.target)) {
                     select.blur();
                 }
             });
+
+            const MP = document.getElementById('morePage');
+            if (MP.parentElement.id !== "defs" && (!MP.contains(event.target))) {
+                unuseTemplate('morePage');
+            }
         });
 
         function insertTemplate(obj, id) {
@@ -581,6 +606,9 @@
                     </g>
                 </svg>
             </button>
+        </div>
+        <div id="morePage">
+            <p>HELLOOOO!</p>
         </div>
     </div>
 
