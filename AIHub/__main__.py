@@ -1,6 +1,5 @@
 from AIHub import providers
 from werkzeug.exceptions import BadRequest
-from multiprocessing import Process, Queue
 from threading import Lock
 import json
 import flask
@@ -16,43 +15,22 @@ class DataBase:
         if not os.path.exists(os.path.join(PATH, 'UI', 'databases')):
             os.mkdir(os.path.join(PATH, 'UI', 'databases'))
         self.lock = Lock()
-        self.queue = Queue()
-        self.saveq = Queue()
-        self.doneq = Queue()
-        self.process = Process(target=self._run, args=(self.queue, self.saveq, self.doneq), daemon=True)
-        self.process.start()
+        self.conn = sqlite3.connect(os.path.join(PATH, 'UI', 'databases', 'chats.db'), check_same_thread=False)
         self.execute('''CREATE TABLE IF NOT EXISTS chats (
   id INT,
   name VARCHAR(100),
   conv JSON
 );''')
     
-    def _run(self, Q: Queue, saveQ: Queue, doneQ: Queue):
-        conn = sqlite3.connect(os.path.join(PATH, 'UI', 'databases', 'chats.db'))
-        try:
-            while True:
-                val = Q.get()
-                if val == 'SAVE':
-                    conn.commit()
-                    saveQ.put('DONE!')
-                else:
-                    cur = conn.execute(val['sql'], val['params'])
-                    if val['return']:
-                        doneQ.put(cur.fetchall())
-                    else:
-                        doneQ.put(None)
-        finally:
-            conn.close()
-    
     def execute(self, sql, *params, returns=False):
         with self.lock:
-            self.queue.put({'sql': sql, 'params': params, 'return': returns})
-            return self.doneq.get()
+            cur = self.conn.execute(sql, params)
+            if returns:
+                return cur.fetchall()
     
     def save(self):
         with self.lock:
-            self.queue.put('SAVE')
-            self.saveq.get()
+            self.conn.commit()
     
     def __del__(self):
         self.process.kill()
