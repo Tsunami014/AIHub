@@ -578,7 +578,35 @@
         function renameConv() {
             const parent = document.getElementById('morePage').parentElement;
             unuseTemplate('morePage');
-            insertTemplate(parent, 'renameInp').placeholder = parent.firstElementChild.firstElementChild.innerText;
+            const inp = insertTemplate(parent, 'renameInp');
+            inp.value = "";
+            inp.placeholder = parent.firstElementChild.firstElementChild.innerText;
+            inp.focus();
+            inp.onblur = function() {
+                if (inp.value === "") {
+                    inp.onblur = function() {};
+                    unuseTemplate('renameInp');
+                    return;
+                }
+                fetch('/api/v1/chat/'+SELECTED, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': "application/json"
+                    },
+                    body: JSON.stringify({'name': inp.value})
+                })
+                    .then(resp => resp.json())
+                    .then(json => {
+                        if (json.status === 'error') {
+                            console.error(json);
+                            alert(json.message);
+                            return;
+                        }
+                        parent.firstElementChild.firstElementChild.innerText = inp.value;
+                        inp.onblur = function() {};
+                        unuseTemplate('renameInp');
+                    });
+            }
         }
 
         document.addEventListener('click', function(event) {
@@ -698,7 +726,7 @@
                 </div>
             </button>
         </div>
-        <input id="renameInp" type="text"></input>
+        <input id="renameInp" type="text" onkeydown="if(event.key === 'Enter') {this.blur();}"></input>
         <div id="morePage">
             <div class="morePageBtn" role="button" tabindex="0">
                 <svg height="38" width="30">
