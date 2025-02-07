@@ -5,7 +5,7 @@
             --hov-col: rgba(60, 70, 80, 0.07);
             --active-col: rgba(75, 90, 110, 0.12);
 
-            --primary-1: rgba(0, 255, 100, 0.1);
+            --primary-1: rgba(0, 255, 100, 0.07);
             --accent-1-light-rgb: 140, 150, 170;
             --accent-1-dark-rgb: 60, 75, 85;
             --accent-1-strong-rgb: 75, 110, 190;
@@ -201,11 +201,20 @@
         }
 
         #morePage {
-            background-color: white;
+            background-color: var(--primary-2);
             border: 2px solid rgba(var(--accent-1-light-rgb), 0.7);
             border-radius: 10px;
             margin: 20px;
-            padding: 1px 15px;
+            padding: 0px 20px;
+
+            display: grid;
+            grid-template-columns: auto auto;
+            justify-content: space-between;
+        }
+        .morePageBtn {
+            width: fit-content;
+            height: fit-content;
+            position: relative;
         }
 
         #RightSettings {
@@ -595,6 +604,16 @@
                     <circle cx="50" cy="50" r="7" fill="black"/>
                     <circle cx="80" cy="50" r="7" fill="black"/>
                 </symbol>
+
+                <symbol id="delete" viewBox="-2.4 -2.4 28.80 28.80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g stroke="#e01b24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 11V17" />
+                        <path d="M14 11V17" />
+                        <path d="M4 7H20" />
+                        <path d="M6 7H12H18V18C18 19.6569 16.6569 21 15 21H9C7.34315 21 6 19.6569 6 18V7Z" />
+                        <path d="M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V7H9V5Z" />
+                    </g>
+                </symbol>
             </defs>
         </svg>
         <svg id="spinner" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -628,7 +647,24 @@
             </button>
         </div>
         <div id="morePage">
-            <p>HELLOOOO!</p>
+            <div class="morePageBtn" role="button" tabindex="0">
+                <svg height="38" width="30">
+                    <use href="#delete"/>
+                </svg>
+                <div class="tooltip">Delete</div>
+            </div>
+            <div class="morePageBtn" role="button" tabindex="0">
+                <svg height="38" width="30">
+                    <use href="#delete"/>
+                </svg>
+                <div class="tooltip">Delete</div>
+            </div>
+            <div class="morePageBtn" role="button" tabindex="0">
+                <svg height="38" width="30">
+                    <use href="#delete"/>
+                </svg>
+                <div class="tooltip">Delete</div>
+            </div>
         </div>
     </div>
 
