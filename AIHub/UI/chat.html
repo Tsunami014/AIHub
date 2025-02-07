@@ -150,28 +150,38 @@
             scroll();
             var usingSpin = true;
 
-            const evtSource = new EventSource('/api/v1/ai/run/'+PROVIDER);
-            evtSource.onmessage = function(event) {
+            const response = await fetch('/api/v1/ai/run/'+PROVIDER, {
+                method: 'POST',
+                cache: "no-cache",
+                keepalive: true,
+                headers: {
+                    'Accept': "text/event-stream",
+                    'Content-Type': "application/json"
+                },
+                body: JSON.stringify({'conv': CONV})
+            })
+            const reader = response.body.getReader();
+
+            while (true) {
+                const {value, done} = await reader.read();
+                var newTxt = new TextDecoder().decode(value);
+                if (newTxt[0] === "!") {
+                    inn.firstElementChild.innerText = newTxt;
+                    updateLastMessage(newTxt);
+                    scroll();
+                    break;
+                }
+                if (done) {
+                    break;
+                };
+
                 if (usingSpin) {
                     usingSpin = false;
                     unuseTemplate('spinner');
                 }
-                var newTxt = event.data;
-                inn.firstElementChild.innerText = newTxt;
-                updateLastMessage(newTxt);
-            };
-            evtSource.addEventListener('done', function(event) {
-                var newTxt = event.data;
-                inn.firstElementChild.innerText = newTxt;
-                updateLastMessage(newTxt);
-                evtSource.close();
-                scroll();
-            });
-            evtSource.onerror = function(event) {
-                console.error('Error:', event);
-                alert(event);
-                evtSource.close();
-            };
+                inn.firstElementChild.innerText = newTxt.slice(1);
+                updateLastMessage(newTxt.slice(1));
+            }
         }
 
         async function onChatGo() {

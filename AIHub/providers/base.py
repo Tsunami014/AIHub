@@ -9,33 +9,41 @@ __all__ = [
 class MetaAbc(type):
     def __str__(cls):
         return cls.NAME
+    def __repr__(cls):
+        return cls.REPR
 
 class BaseProvider(metaclass=MetaAbc):
-    def stream(self, model, conv):
+    NAME = 'Base Provider'
+    REPR = '<BaseProvider>'
+    @staticmethod
+    def stream(model, conv):
         """
         # How to use
 
+        ## Inputs
+         - `model`: a list of strings which is the specified model.
+         - `conv`: a list of dicts which is the conversation in the format `{'role': 'user OR bot', 'content': 'message'}`.
+
         ## Yield data in the format:
 
-         - `yield f"data: {data}\\n\\n"` for sending data
-         - `yield f"event: done\\ndata: {data}\\n\\n"` for sending done event and the completed message
+         - `yield " "+data` for sending data
+         - `yield "!"+data` for sending done event and the completed message
         """
         yield "event: done\ndata: Hello, world!\n\n"
     
     @staticmethod
+    def getInfo(model):
+        return 'MODEL SELECTED: '+"'s ".join(model)
+    
+    @staticmethod
     def getHierachy():
         return []
-    
-    NAME = 'Base Provider'
-    def __str__(cls):
-        return '<BaseProvider>'
-    
-    def __repr__(self):
-        return str(self)
 
 class TestProvider(BaseProvider):
-    def stream(self, modeldat, conv):
-        model = modeldat.split(':')
+    NAME = 'Test Provider'
+    REPR = '<TestProvider>'
+    @staticmethod
+    def stream(model, conv):
         if len(model) == 1:
             message = {
                 'Hello-world': 'Hello, world!', 
@@ -45,18 +53,23 @@ class TestProvider(BaseProvider):
                 'No-idea': 'I have no idea what I am doing!'
             }[model[0]]
         elif model[0] == 'echo':
-            message = conv[-1]['message']
+            message = conv[-2]['content']
         tot = ""
         for char in message:
-            time.sleep(random.random()*2+2)
+            time.sleep(random.random()/2+0.5)
             tot += char
-            yield f"data: {tot}\n\n"
-        yield f"event: done\ndata: {tot}\n\n"
+            yield " "+tot
+        yield "!"+tot
+    
+    @staticmethod
+    def getInfo(model):
+        if model[0] == 'echo':
+            if model[1] == 'all':
+                return 'Test Provider\'s Echo provider provides a state-of-the-art echoing models, and the selected `all` model will echo all the conversation so far.'
+            else:
+                return 'Test Provider\'s Echo provider provides a state-of-the-art echoing models, and the selected `last` model will echo the user\'s last message.'
+        return 'Test Provider\'s '+model[0]+' model will repeat it\'s phrase to the user.'
     
     @staticmethod
     def getHierachy():
         return ['Hello-world', 'Hello-AIHub', 'Testing', 'I-am-bot', 'No-idea', ['echo', ['all', 'last']]]
-    
-    NAME = 'Test Provider'
-    def __str__(cls):
-        return '<TestProvider>'

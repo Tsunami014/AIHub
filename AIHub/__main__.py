@@ -22,9 +22,10 @@ class DataBase:
     
     def execute(self, sql, *params):
         try:
-            return self.conn.execute(sql, params).fetchall()
+            cur = self.conn.execute(sql, params)
         except sqlite3.InterfaceError: # Try again
-            return self.conn.execute(sql, params).fetchall()
+            cur = self.conn.execute(sql, params)
+        return cur.fetchall() or cur.fetchall()
     
     def save(self):
         self.conn.commit()
@@ -45,27 +46,26 @@ app = flask.Flask(__name__)
 def index():
     return apply('init.html')
 
-@app.route('/api/v1/ai/run/<model>')
-def aiRun(model):
-    print('running', model)
-    def generate():
-        import time
-        message = "Hello, world!"
-        tot = ""
-        for char in message:
-            time.sleep(0.3)
-            tot += char
-            yield f"data: {tot}\n\n"
-        yield f"event: done\ndata: {tot}\n\n"
-    return flask.Response(generate(), mimetype='text/event-stream')
+def splitModel(model):
+    spl = model.split(':')
+    provs = {str(i): i for i in (getattr(providers, j) for j in providers.__all__ if j != 'BaseProvider')}
+    return provs[spl[0]], spl[1:]
+
+@app.route('/api/v1/ai/run/<modelStr>', methods=["POST"])
+def aiRun(modelStr):
+    prov, model = splitModel(modelStr)
+    def generate(conv):
+        yield from prov.stream(model, conv)
+    return flask.Response(generate(flask.request.json['conv']), mimetype='text/event-stream')
 
 @app.route('/api/v1/ai/get')
 def getProvs():
     return flask.jsonify({'data': [[str(i), i.getHierachy()] for i in (getattr(providers, j) for j in providers.__all__ if j != 'BaseProvider')]}), 200
 
-@app.route('/api/v1/ai/info/<model>')
-def info(model):
-    return flask.jsonify({'data': f'MODEL SELECTED: {model}'}), 200
+@app.route('/api/v1/ai/info/<modelStr>')
+def info(modelStr):
+    prov, model = splitModel(modelStr)
+    return flask.jsonify({'data': prov.getInfo(model)}), 200
 
 @app.route('/api/v1/chat', methods=['GET', 'POST'])
 def newChat(method=None):
