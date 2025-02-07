@@ -7,6 +7,11 @@ name = "AIHub"
 description = "A buncha AI stuff to use in your projects!"
 version = "0.0.0"
 
+dependencies = [
+    "g4f[all]",
+    "curl_cffi"
+]
+
 authors = [
   {name = "Tsunami014", email = "tsunami014@duck.com"},
 ]
@@ -29,4 +34,4 @@ classifiers = [
 gui = ["flask"]
 
 [project.gui-scripts]
-AI = "AIHub:__main__"
+AIchat = "AIHub:__main__"

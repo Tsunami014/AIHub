@@ -1,8 +1,8 @@
+import flask
 from AIHub import providers
 from werkzeug.exceptions import BadRequest
 from threading import Lock
 import json
-import flask
 import sqlite3
 import os
 

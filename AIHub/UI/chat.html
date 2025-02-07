@@ -36,7 +36,6 @@
         padding: 0px 10px;
         margin: 10px 1px;
         max-width: 50%;
-        word-break: break-all;
     }
     .myIn {
         background-color: rgba(var(--accent-1-strong-rgb), 0.5);
@@ -183,6 +182,7 @@
                     }
                     inn.firstElementChild.innerText = it.data;
                     updateLastMessage(it.data);
+                    scroll();
                 });
                 if (done) {
                     break;
