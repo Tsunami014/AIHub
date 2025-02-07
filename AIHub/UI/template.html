@@ -187,6 +187,22 @@
             flex-direction: column;
         }
 
+        .prevChatBtn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .moreBtnSvg {
+            height: 36px;
+            width: 30px;
+        }
+        .moreBtn {
+            position: absolute;
+            display: flex;
+            right: 0;
+            padding: 0px 12px;
+        }
+
         #RightSettings {
             width: 100%;
             text-align: center;
@@ -471,6 +487,28 @@
                             window.location.replace('/chat/'+element[0]);
                         }
                         button.innerText = element[1];
+
+                        button.classList.add('prevChatBtn');
+
+                        var btn2 = document.createElement("button");
+                        btn2.classList.add('moreBtn');
+
+                        btn2.onclick = function(event) {
+                            event.stopPropagation();
+                            console.log('btn2 clicked!');
+                        };
+
+                        const svgNS = "http://www.w3.org/2000/svg";
+
+                        var svg = document.createElementNS(svgNS, "svg");
+                        svg.classList.add('moreBtnSvg');
+
+                        var useElement = document.createElementNS(svgNS, "use");
+                        useElement.setAttribute("href", "#more");
+
+                        svg.appendChild(useElement);
+                        btn2.appendChild(svg);
+                        button.appendChild(btn2);
                         parent.appendChild(button);
                     });
                 });
@@ -516,6 +554,12 @@
                     <path d="M20 10 H19" stroke-width="2"/>
                     <path d="M20 13 H19" stroke-width="2"/>
                     <path d="M15 22V2"/>
+                </symbol>
+
+                <symbol id="more" viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="20" cy="50" r="7" fill="black"/>
+                    <circle cx="50" cy="50" r="7" fill="black"/>
+                    <circle cx="80" cy="50" r="7" fill="black"/>
                 </symbol>
             </defs>
         </svg>
