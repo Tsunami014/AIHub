@@ -1,3 +1,4 @@
+import random
 import flask
 from AIHub import providers
 from werkzeug.exceptions import BadRequest
@@ -50,7 +51,12 @@ def index():
 
 def splitModel(model):
     spl = model.split(':')
-    provs = {str(i): i for i in (getattr(providers, j) for j in providers.__all__ if j != 'BaseProvider')}
+    allprovs = (getattr(providers, i) for i in providers.__all__ if i != 'BaseProvider')
+    if spl == ['best']:
+        return providers.TestProvider, ['best']
+    elif spl == ['random']:
+        return random.choice(list(allprovs)), ['random']
+    provs = {str(i): i for i in allprovs}
     return provs[spl[0]], spl[1:]
 
 @app.route('/api/v1/ai/run/<modelStr>', methods=["POST"])
@@ -64,6 +70,8 @@ def getProvs():
 
 @app.route('/api/v1/ai/info/<modelStr>')
 def info(modelStr):
+    if modelStr == 'random':
+        return flask.jsonify({'data': 'You have selected a RANDOM model!'}), 200
     prov, model = splitModel(modelStr)
     return flask.jsonify({'data': prov.getInfo(model)}), 200
 
