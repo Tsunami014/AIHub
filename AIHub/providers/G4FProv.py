@@ -1,6 +1,7 @@
 import g4f.Provider
 from g4f.client import Client
 from AIHub.providers.base import BaseProvider, format
+import random
 
 class G4FProvider(BaseProvider):
     NAME = 'GPT4Free Provider'
@@ -9,6 +10,10 @@ class G4FProvider(BaseProvider):
     def stream(model, conv):
         out = ''
         prov = g4f.Provider.__map__[model[0][1:]]
+        if model[1] == 'random':
+            model = [model[0], random.choice(prov.models)]
+        elif model[1] == 'best':
+            model = [model[0], prov.default_model]
         try:
             strem = prov.supports_stream
             resp = Client().chat.completions.create(
@@ -35,7 +40,10 @@ class G4FProvider(BaseProvider):
     @staticmethod
     def getInfo(model):
         prov = g4f.Provider.__map__[model[0][1:]]
-        return f"""{model[0][1:]}'s model {model[-1]} is a GPT4Free model, which has the following properties:
+        best = model[1] == 'best'
+        if best:
+            model = [model[0], prov.default_model]
+        return f"""{model[0][1:]}'s {"best " if best else ""}model {model[-1]} is a GPT4Free model, which has the following properties:
  - {'Does not require' if not prov.needs_auth else 'Requires'} authentification to work
  - {'Supports' if prov.supports_stream else 'Does not support'} streaming
  - located at {prov.url}"""

@@ -47,18 +47,23 @@ class BaseProvider(metaclass=MetaAbc):
 class TestProvider(BaseProvider):
     NAME = 'Test Provider'
     REPR = '<TestProvider>'
+    OPTS = {
+        'best': 'Hello, world!', 
+        'Hello-world': 'Hello, world!', 
+        'Hello-AIHub': 'Hello, AIHub!', 
+        'Testing': 'Testing...', 
+        'I-am-bot!': 'I am bot! Who you are?', 
+        'No-idea': 'I have no idea what I am doing!'
+    }
     @staticmethod
     def stream(model, conv):
         if len(model) == 1:
-            message = {
-                'Hello-world': 'Hello, world!', 
-                'Hello-AIHub': 'Hello, AIHub!', 
-                'Testing': 'Testing...', 
-                'I-am-bot!': 'I am bot! Who you are?', 
-                'No-idea': 'I have no idea what I am doing!'
-            }[model[0]]
+            if model[0] == 'random':
+                message = random.choice(list(set(TestProvider.OPTS.values())))
+            else:
+                message = TestProvider.OPTS[model[0]]
         elif model[0] == 'echo':
-            if model[1] == 'last3':
+            if model[1] == 'last3' or (model[1] == 'random' and random.choice([True, False])):
                 message = "\n".join([f'{i['role']}: {i['content']}' for i in conv[-3:]])
             else:
                 message = conv[-1]['content']
@@ -76,8 +81,12 @@ class TestProvider(BaseProvider):
             if model[1] == 'last3':
                 return t+'`last3` model will echo the last 3 messages in the conversation so far.'
             else:
-                return t+'`last` model will echo the user\'s last message.'
-        return 'Test Provider\'s '+model[0]+' model will repeat it\'s phrase to the user.'
+                return t+('`last`' if model[1] == 'last' else 'best (`last`)')+' model will echo the user\'s last message.'
+        if model[0] == 'best':
+            model = 'best (`Hello-world`)'
+        else:
+            model = f'`{model[0]}`'
+        return 'Test Provider\'s '+model+' model will repeat it\'s phrase to the user.'
     
     @staticmethod
     def getHierachy():

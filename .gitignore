@@ -2,3 +2,6 @@
 *.pyc
 *.db
 *.db-journal
+
+# Other weird stuff from g4f
+har_and_cookies
