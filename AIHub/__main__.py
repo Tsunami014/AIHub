@@ -1,5 +1,7 @@
 from AIHub import providers
 from werkzeug.exceptions import BadRequest
+from multiprocessing import Process, Queue
+from threading import Lock
 import json
 import flask
 import sqlite3
@@ -13,25 +15,47 @@ class DataBase:
     def __init__(self):
         if not os.path.exists(os.path.join(PATH, 'UI', 'databases')):
             os.mkdir(os.path.join(PATH, 'UI', 'databases'))
-        self.conn = sqlite3.connect(os.path.join(PATH, 'UI', 'databases', 'chats.db'), check_same_thread=False)
+        self.lock = Lock()
+        self.queue = Queue()
+        self.saveq = Queue()
+        self.doneq = Queue()
+        self.process = Process(target=self._run, args=(self.queue, self.saveq, self.doneq), daemon=True)
+        self.process.start()
         self.execute('''CREATE TABLE IF NOT EXISTS chats (
   id INT,
   name VARCHAR(100),
   conv JSON
 );''')
     
-    def execute(self, sql, *params):
+    def _run(self, Q: Queue, saveQ: Queue, doneQ: Queue):
+        conn = sqlite3.connect(os.path.join(PATH, 'UI', 'databases', 'chats.db'))
         try:
-            cur = self.conn.execute(sql, params)
-        except sqlite3.InterfaceError: # Try again
-            cur = self.conn.execute(sql, params)
-        return cur.fetchall() or cur.fetchall()
+            while True:
+                val = Q.get()
+                if val == 'SAVE':
+                    conn.commit()
+                    saveQ.put('DONE!')
+                else:
+                    cur = conn.execute(val['sql'], val['params'])
+                    if val['return']:
+                        doneQ.put(cur.fetchall())
+                    else:
+                        doneQ.put(None)
+        finally:
+            conn.close()
+    
+    def execute(self, sql, *params, returns=False):
+        with self.lock:
+            self.queue.put({'sql': sql, 'params': params, 'return': returns})
+            return self.doneq.get()
     
     def save(self):
-        self.conn.commit()
+        with self.lock:
+            self.queue.put('SAVE')
+            self.saveq.get()
     
     def __del__(self):
-        self.conn.close()
+        self.process.kill()
 
 DB = DataBase()
 
@@ -54,9 +78,7 @@ def splitModel(model):
 @app.route('/api/v1/ai/run/<modelStr>', methods=["POST"])
 def aiRun(modelStr):
     prov, model = splitModel(modelStr)
-    def generate(conv):
-        yield from prov.stream(model, conv)
-    return flask.Response(generate(flask.request.json['conv']), mimetype='text/event-stream')
+    return flask.Response(prov.stream(model, flask.request.json['conv']), mimetype='text/event-stream')
 
 @app.route('/api/v1/ai/get')
 def getProvs():
@@ -71,10 +93,10 @@ def info(modelStr):
 def newChat(method=None):
     meth = method or flask.request.method
     if meth == 'GET': # Get all chats
-        return flask.jsonify({"status": "OK", "id": None, "data": DB.execute('SELECT * FROM chats')}), 200
+        return flask.jsonify({"status": "OK", "id": None, "data": DB.execute('SELECT * FROM chats', returns=True)}), 200
     elif meth == 'POST': # Create a new chat
         id = 1
-        while DB.execute('SELECT * FROM chats WHERE id = ?', id):
+        while DB.execute('SELECT * FROM chats WHERE id = ?', id, returns=True):
             id += 1
         try:
             data = flask.request.json
@@ -98,7 +120,7 @@ def handle_request(id, method=None):
         return flask.jsonify({"status": "error", "id": id, "message": "Invalid chat ID"}), 400
     meth = method or flask.request.method
     if meth == 'GET': # Get the chat
-        chat = DB.execute('SELECT * FROM chats WHERE id = ?', id)
+        chat = DB.execute('SELECT * FROM chats WHERE id = ?', id, returns=True)
         if chat:
             return flask.jsonify({"status": "OK", "id": id, "data": json.loads(chat[0][2])}), 200
         else:
@@ -126,7 +148,7 @@ def handle_request(id, method=None):
             return flask.jsonify({"status": "error", "id": id, "message": "Invalid request data"}), 400
         if 'conv' in data:
             data['conv'] = json.dumps({'messages': data['conv']})
-        chat = DB.execute('SELECT * FROM chats WHERE id = ?', id)
+        chat = DB.execute('SELECT * FROM chats WHERE id = ?', id, returns=True)
         if chat:
             if 'name' not in data:
                 DB.execute('UPDATE chats SET conv = ? WHERE id = ?', data['conv'], id)
@@ -135,14 +157,14 @@ def handle_request(id, method=None):
             else:
                 DB.execute('UPDATE chats SET name = ?, conv = ? WHERE id = ?', data['name'], data['conv'], id)
             DB.save()
-            chat = DB.execute('SELECT * FROM chats WHERE id = ?', id)
+            chat = DB.execute('SELECT * FROM chats WHERE id = ?', id, returns=True)
             return flask.jsonify({"status": "OK", "id": id, "data": json.loads(chat[0][2])}), 200
         else:
             return flask.jsonify({"status": "error", "id": id, "message": "Chat not found"}), 404
     elif meth == 'DELETE': # Delete the chat
         chat = DB.query('SELECT * FROM chats WHERE id = ?', id)
         if chat:
-            DB.execute('DELETE FROM chats WHERE id = ?', id)
+            DB.execute('DELETE FROM chats WHERE id = ?', id, returns=True)
             DB.save()
             return flask.jsonify({"status": "OK", "id": id, "data": json.loads(chat[0][2])}), 200
         else:
