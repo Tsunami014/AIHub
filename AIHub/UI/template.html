@@ -88,7 +88,7 @@
         .sidebar {
             position: relative;
             top: 0;
-            z-index: 2;
+            z-index: 1;
             background-color: whitesmoke;
         }
         .sidebarTrans {
@@ -233,6 +233,28 @@
             font-style: italic;
             color: darkslategray;
             margin: 10px;
+        }
+
+        .tooltip {
+            background-color: black;
+            color: white;
+            z-index: 2;
+            border-radius: 10px;
+            visibility: hidden;
+            text-align: center;
+            padding: 5px;
+            position: absolute;
+            bottom: 125%;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            left: -25%;
+            right: -25%;
+        }
+
+        *:hover > .tooltip {
+            visibility: visible;
+            opacity: 1;
         }
 
 
@@ -601,6 +623,7 @@
                     <svg class="moreBtnSvg" height="38" width="30">
                         <use href="#more"/>
                     </svg>
+                    <div class="tooltip">Options</div>
                 </div>
             </button>
         </div>
