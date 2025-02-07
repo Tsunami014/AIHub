@@ -570,6 +570,9 @@
                         alert(json.message);
                         return;
                     }
+                    if (window.location.pathname === "/chat/"+SELECTED) {
+                        window.location.replace('/');
+                    }
                     unuseTemplate('morePage');
                     findConvs();
                 });
