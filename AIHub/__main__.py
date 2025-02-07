@@ -140,9 +140,9 @@ def handle_request(id, method=None):
         else:
             return flask.jsonify({"status": "error", "id": id, "message": "Chat not found"}), 404
     elif meth == 'DELETE': # Delete the chat
-        chat = DB.query('SELECT * FROM chats WHERE id = ?', id)
+        chat = DB.execute('SELECT * FROM chats WHERE id = ?', id, returns=True)
         if chat:
-            DB.execute('DELETE FROM chats WHERE id = ?', id, returns=True)
+            DB.execute('DELETE FROM chats WHERE id = ?', id)
             DB.save()
             return flask.jsonify({"status": "OK", "id": id, "data": json.loads(chat[0][2])}), 200
         else:
