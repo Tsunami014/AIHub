@@ -51,6 +51,10 @@
         transform: scaleX(1);
     }
 
+    .pfpParent {
+        position: relative;
+        height: fit-content;
+    }
     .pfp {
         width: 50px;
         height: 50px;
@@ -72,15 +76,16 @@
 
         var PFPCache = {};
         async function getPfp(pfpElm, pfp) {
+            pfpElm.lastElementChild.innerText = pfp;
             if (pfp === '') {
-                pfpElm.src = '';
+                pfpElm.firstElementChild.src = '';
                 return;
             }
             if (PFPCache[pfp]) {
-                pfpElm.src = PFPCache[pfp];
+                pfpElm.firstElementChild.src = PFPCache[pfp];
                 return;
             }
-            var resp = await fetch(`/proxy/google?q=${pfp}`);
+            var resp = await fetch(`/proxy/google?q=${pfp}%20icon%20svg`);
             var text = await resp.text();
             const parser = new DOMParser();
             const doc = parser.parseFromString(text, "text/html");
@@ -88,8 +93,7 @@
             const links = doc.querySelectorAll('img');
             if (links.length > 0) {
                 var url = links[1].src;
-                console.log(url);
-                pfpElm.src = url;
+                pfpElm.firstElementChild.src = url;
                 PFPCache[pfp] = url;
                 return;
             }
@@ -100,8 +104,17 @@
             out.classList.add('out');
 
             if (role === 'bot') {
-                var pfpElm = document.createElement('img');
-                pfpElm.classList.add('pfp');
+                var pfpElm = document.createElement('div');
+                pfpElm.classList.add('pfpParent');
+
+                var pfpImg = document.createElement('img');
+                pfpImg.classList.add('pfp');
+                pfpElm.appendChild(pfpImg);
+                
+                var pfpTooltip = document.createElement('div');
+                pfpTooltip.classList.add('tooltip');
+                pfpElm.appendChild(pfpTooltip);
+
                 getPfp(pfpElm, pfp);
                 out.appendChild(pfpElm);
             }
