@@ -5,6 +5,10 @@ import random
 
 __all__ = ['G4FProvider']
 
+def format2(info, model, done=False):
+    model = [model[0][1:]] + model[1:]
+    return format(info, model, done)
+
 def getL(prov):
     if not prov.working or prov.url is None:
         return [None, None]
@@ -34,8 +38,8 @@ class G4FProvider(BaseProvider):
                     model = [li[0], 'best']
                     break
             else:
-                yield format('', model)
-                yield format('Sorry, but an error has occured: No provider found!', model, True)
+                yield format2('', model)
+                yield format2('Sorry, but an error has occured: No provider found!', model, True)
                 return
         elif model == ['random']:
             hierachy = G4FProvider.getHierachy()
@@ -50,6 +54,7 @@ class G4FProvider(BaseProvider):
             model = [model[0], random.choice(avmodels)]
         elif model[1] == 'best':
             model = [model[0], prov.default_model]
+        yield format2('', model)
         try:
             strem = prov.supports_stream
             resp = Client().chat.completions.create(
@@ -64,14 +69,14 @@ class G4FProvider(BaseProvider):
                     resp = i.choices[0].delta.content
                     if resp:
                         out += resp
-                    yield format(out, model)
-                yield format(out, model, True)
+                    yield format2(out, model)
+                yield format2(out, model, True)
             else:
-                yield format(resp.choices[0].delta.content, model)
-                yield format(resp.choices[0].delta.content, model, True)
+                yield format2(resp.choices[0].delta.content, model)
+                yield format2(resp.choices[0].delta.content, model, True)
         except Exception as e:
-            yield format(out, model)
-            yield format(f'{out}{"\n" if out != "" else ""}Sorry, but an error has occured: {e}', model, True)
+            yield format2(out, model)
+            yield format2(f'{out}{"\n" if out != "" else ""}Sorry, but an error has occured: {e}', model, True)
     
     @staticmethod
     def getInfo(model):

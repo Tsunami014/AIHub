@@ -16,7 +16,7 @@ class MetaAbc(type):
 
 
 def format(info, model, done=False):
-    return json.dumps({'data': info, 'done': done, 'model': model[-1]})+','
+    return json.dumps({'data': info, 'done': done, 'model': model})+','
 
 class BaseProvider(metaclass=MetaAbc):
     NAME = 'Base Provider'

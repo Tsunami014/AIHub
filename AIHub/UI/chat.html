@@ -61,6 +61,12 @@
         border-radius: 50%;
         margin-right: 10px;
         background-color: black;
+        object-fit: cover;
+    }
+    .pfpParent > .tooltip {
+        width: max-content;
+        left: 0;
+        bottom: calc(100% + 10px);
     }
 </style>
 
@@ -76,16 +82,21 @@
 
         var PFPCache = {};
         async function getPfp(pfpElm, pfp) {
-            pfpElm.lastElementChild.innerText = pfp;
-            if (pfp === '') {
+            if (!pfp) {
                 pfpElm.firstElementChild.src = '';
+                pfpElm.lastElementChild.innerText = '';
                 return;
             }
+            var displTxt = pfp[0];
+            if (pfp.length > 1) {
+                displTxt += '\n'+pfp.slice(1).join('\n');
+            }
+            pfpElm.lastElementChild.innerText = displTxt;
             if (PFPCache[pfp]) {
                 pfpElm.firstElementChild.src = PFPCache[pfp];
                 return;
             }
-            var resp = await fetch(`/proxy/google?q=${pfp}%20icon%20svg`);
+            var resp = await fetch(`/proxy/google?q=${pfp[pfp.length-1].replace(' ', '+')}+ai+icon+svg+-huggingface`);
             var text = await resp.text();
             const parser = new DOMParser();
             const doc = parser.parseFromString(text, "text/html");
@@ -228,6 +239,9 @@
                 var data = JSON.parse(json).data;
 
                 data.forEach(it => {
+                    if (it.data === '') {
+                        updateLastMessage('', it.model);
+                    }
                     if (it.done === true) {
                         getPfp(msg.firstElementChild, it.model);
                         inn.firstElementChild.innerText = it.data;
