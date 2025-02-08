@@ -1,9 +1,10 @@
-import random
 import flask
 from AIHub import providers
 from werkzeug.exceptions import BadRequest
 from threading import Lock
 import json
+import random
+import requests
 import sqlite3
 import os
 
@@ -49,6 +50,15 @@ app = flask.Flask(__name__)
 def index():
     return apply('init.html')
 
+@app.route('/proxy/google')
+def google_proxy():
+    q = flask.request.args.get('q')
+    if not q:
+        return flask.Response("Query parameter is missing.", status=400)
+    url = f"https://www.google.com/search?q={q}&udm=2"
+    resp = requests.get(url)
+    return flask.Response(resp.text, status=resp.status_code, content_type='text/html')
+
 def splitModel(model):
     spl = model.split(':')
     allprovs = (getattr(providers, i) for i in providers.__all__ if i != 'BaseProvider')
@@ -62,7 +72,7 @@ def splitModel(model):
 @app.route('/api/v1/ai/run/<modelStr>', methods=["POST"])
 def aiRun(modelStr):
     prov, model = splitModel(modelStr)
-    return flask.Response(prov.stream(model, flask.request.json['conv']), mimetype='text/event-stream')
+    return flask.Response(prov.stream(model, [{j: i[j] for j in i if j in ('role', 'content')} for i in flask.request.json['conv']]), mimetype='text/event-stream')
 
 @app.route('/api/v1/ai/get')
 def getProvs():

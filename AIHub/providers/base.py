@@ -15,8 +15,8 @@ class MetaAbc(type):
         return cls.REPR
 
 
-def format(info, done=False):
-    return json.dumps({'data': info, 'done': done})+','
+def format(info, model, done=False):
+    return json.dumps({'data': info, 'done': done, 'model': model[-1]})+','
 
 class BaseProvider(metaclass=MetaAbc):
     NAME = 'Base Provider'
@@ -31,10 +31,11 @@ class BaseProvider(metaclass=MetaAbc):
          - `conv`: a list of dicts which is the conversation in the format `{'role': 'user OR bot', 'content': '...'}`.
 
         ## How to yield data
-         - `format(info, done=False)`
+         - `format(info, model, done=False)`
+         - You need >= 1 yields before the `done=True`
          - You *should* specify `done=True` (or just True, it's a positional or kw arg) for it to correctly finish the message
         """
-        yield format('', True)
+        yield format('', model, True)
     
     @staticmethod
     def getInfo(model):
@@ -71,8 +72,8 @@ class TestProvider(BaseProvider):
         for char in message:
             time.sleep(max(random.random()/8, 0))
             tot += char
-            yield format(tot)
-        yield format(tot, True)
+            yield format(tot, model)
+        yield format(tot, model, True)
     
     @staticmethod
     def getInfo(model):

@@ -34,8 +34,8 @@ class G4FProvider(BaseProvider):
                     model = [li[0], 'best']
                     break
             else:
-                yield format('')
-                yield format('Sorry, but an error has occured: No provider found!', True)
+                yield format('', model)
+                yield format('Sorry, but an error has occured: No provider found!', model, True)
                 return
         elif model == ['random']:
             hierachy = G4FProvider.getHierachy()
@@ -64,14 +64,14 @@ class G4FProvider(BaseProvider):
                     resp = i.choices[0].delta.content
                     if resp:
                         out += resp
-                    yield format(out)
-                yield format(out, True)
+                    yield format(out, model)
+                yield format(out, model, True)
             else:
-                yield format(resp.choices[0].delta.content)
-                yield format(resp.choices[0].delta.content, True)
+                yield format(resp.choices[0].delta.content, model)
+                yield format(resp.choices[0].delta.content, model, True)
         except Exception as e:
-            yield format(out)
-            yield format(f'{out}{"\n" if out != "" else ""}Sorry, but an error has occured: {e}', True)
+            yield format(out, model)
+            yield format(f'{out}{"\n" if out != "" else ""}Sorry, but an error has occured: {e}', model, True)
     
     @staticmethod
     def getInfo(model):

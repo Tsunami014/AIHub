@@ -50,6 +50,14 @@
     .anim {
         transform: scaleX(1);
     }
+
+    .pfp {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 10px;
+        background-color: black;
+    }
 </style>
 
 <div id="messages">
@@ -62,9 +70,42 @@
 
         var CONV = [];
 
-        function makeMessage(role, content, animate = true) {
+        var PFPCache = {};
+        async function getPfp(pfpElm, pfp) {
+            if (pfp === '') {
+                pfpElm.src = '';
+                return;
+            }
+            if (PFPCache[pfp]) {
+                pfpElm.src = PFPCache[pfp];
+                return;
+            }
+            var resp = await fetch(`/proxy/google?q=${pfp}`);
+            var text = await resp.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, "text/html");
+
+            const links = doc.querySelectorAll('img');
+            if (links.length > 0) {
+                var url = links[1].src;
+                console.log(url);
+                pfpElm.src = url;
+                PFPCache[pfp] = url;
+                return;
+            }
+        }
+
+        function makeMessage(role, content, animate = true, pfp = '') {
             var out = document.createElement('div');
             out.classList.add('out');
+
+            if (role === 'bot') {
+                var pfpElm = document.createElement('img');
+                pfpElm.classList.add('pfp');
+                getPfp(pfpElm, pfp);
+                out.appendChild(pfpElm);
+            }
+
             var inn = document.createElement('div');
             inn.classList.add('in');
             if (role === 'user') {
@@ -87,12 +128,13 @@
             return out;
         }
 
-        async function addMessage(role, content) {
+        async function addMessage(role, content, pfp = '') {
             const ID = this.location.pathname.split('/')[2];
             var newConv = CONV;
             newConv.push({
                 'role': role,
-                'content': content
+                'content': content,
+                'pfp': pfp
             });
 
             resp = await fetch('/api/v1/chat/'+ID, {
@@ -111,13 +153,18 @@
                 return;
             }
             CONV = json.data.messages;
-            return makeMessage(role, content);
+            return makeMessage(role, content, pfp=pfp);
         }
 
-        async function updateLastMessage(newContent) {
+        async function updateLastMessage(newContent, pfp) {
             const ID = this.location.pathname.split('/')[2];
             var newConv = CONV;
             newConv[newConv.length - 1].content = newContent;
+            if (newConv[newConv.length - 1].pfp !== pfp) {
+                var pfpElm = document.getElementById('messageBubbles').lastElementChild.firstElementChild;
+                getPfp(pfpElm, pfp);
+            }
+            newConv[newConv.length - 1].pfp = pfp;
 
             resp = await fetch('/api/v1/chat/'+ID, {
                 method: 'PUT',
@@ -143,8 +190,8 @@
         }
 
         async function runAI() {
-            var msg = await addMessage('bot', '', true);
-            var inn = msg.firstElementChild;
+            var msg = await addMessage('bot', '');
+            var inn = msg.lastElementChild;
             insertTemplate(inn, 'spinner');
             scroll();
             var usingSpin = true;
@@ -169,8 +216,9 @@
 
                 data.forEach(it => {
                     if (it.done === true) {
+                        getPfp(msg.firstElementChild, it.model);
                         inn.firstElementChild.innerText = it.data;
-                        updateLastMessage(it.data);
+                        updateLastMessage(it.data, it.model);
                         scroll();
                         done = true;
                         return;
@@ -181,7 +229,7 @@
                         unuseTemplate('spinner');
                     }
                     inn.firstElementChild.innerText = it.data;
-                    updateLastMessage(it.data);
+                    updateLastMessage(it.data, it.model);
                     scroll();
                 });
                 if (done) {
@@ -198,7 +246,7 @@
                 return;
             }
             if (txt.trim()) {
-                await addMessage('user', txt, true);
+                await addMessage('user', txt);
             }
             setChatTxt("");
             scroll();
@@ -227,13 +275,13 @@
             CONV = data.data.messages;
             if (CONV.length < 2) { // First message; came straight from init
                 CONV.forEach(element => {
-                    makeMessage(element.role, element.content);
+                    makeMessage(element.role, element.content, pfp=element.pfp);
                 });
                 scroll();
                 runAI();
             } else {
                 CONV.forEach(element => {
-                    makeMessage(element.role, element.content, false);
+                    makeMessage(element.role, element.content, false, element.pfp);
                 });
                 const scrollable = document.getElementById('messages');
                 scrollable.scrollTo({ top: scrollable.scrollHeight });
