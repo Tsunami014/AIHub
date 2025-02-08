@@ -34,7 +34,6 @@
         width: fit-content;
         border-radius: 10px;
         padding: 0px 10px;
-        margin: 10px 1px;
         max-width: 50%;
     }
     .myIn {
@@ -77,23 +76,39 @@
 
     .buttons {
         width: 50%;
-        margin-left: 10px;
-        margin-right: 10px;
+        margin: 0px 5px;
         display: flex;
         min-width: fit-content;
     }
     .myButtons {
         justify-content: end;
+        /*flex-direction: row-reverse;*/
+    }
+    .chatBtn {
+        margin: 5px 2px;
     }
 </style>
 
 <div id="messages">
-    <div id="messageBubbles"></div>
+    <div id="messageBubbles"><br></div>
     <div id="spacer"></div>
 </div>
 <div class="centre">
+    <div id="chatButtons" class="buttons">
+        <button class="chatBtn">
+            <svg width="18" height="18">
+                <use href="#redo"></use>
+            </svg>
+        </button>
+        <button class="chatBtn">
+            <svg width="18" height="18">
+                <use href="#editText"></use>
+            </svg>
+        </button>
+    </div>
     <script>
         insertTemplate(document.currentScript.parentElement, 'chatContainer');
+        unuseTemplate('chatButtons');
 
         var CONV = [];
 
@@ -152,12 +167,10 @@
                 container.classList.add('myCont');
             }
 
-            var buttons = document.createElement('div');
-            buttons.classList.add('buttons');
+            var buttons = copyTemplate('chatButtons');
             if (role === 'user') {
                 buttons.classList.add('myButtons');
             }
-            buttons.innerText = 'Buttons here!';
 
             var inn = document.createElement('div');
             inn.classList.add('in');
