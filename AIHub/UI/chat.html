@@ -69,11 +69,18 @@
         bottom: calc(100% + 10px);
     }
 
+    .myCont {
+        display: flex;
+        flex-direction: column;
+        align-items: end;
+    }
+
     .buttons {
         width: 50%;
         margin-left: 10px;
         margin-right: 10px;
         display: flex;
+        min-width: fit-content;
     }
     .myButtons {
         justify-content: end;
@@ -141,6 +148,9 @@
             }
 
             var container = document.createElement('div');
+            if (role === 'user') {
+                container.classList.add('myCont');
+            }
 
             var buttons = document.createElement('div');
             buttons.classList.add('buttons');
