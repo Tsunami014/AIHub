@@ -68,6 +68,16 @@
         left: 0;
         bottom: calc(100% + 10px);
     }
+
+    .buttons {
+        width: 50%;
+        margin-left: 10px;
+        margin-right: 10px;
+        display: flex;
+    }
+    .myButtons {
+        justify-content: end;
+    }
 </style>
 
 <div id="messages">
@@ -130,6 +140,15 @@
                 out.appendChild(pfpElm);
             }
 
+            var container = document.createElement('div');
+
+            var buttons = document.createElement('div');
+            buttons.classList.add('buttons');
+            if (role === 'user') {
+                buttons.classList.add('myButtons');
+            }
+            buttons.innerText = 'Buttons here!';
+
             var inn = document.createElement('div');
             inn.classList.add('in');
             if (role === 'user') {
@@ -147,7 +166,9 @@
             var p = document.createElement('p');
             p.innerText = content;
             inn.appendChild(p);
-            out.appendChild(inn);
+            container.appendChild(inn);
+            container.appendChild(buttons);
+            out.appendChild(container);
             document.getElementById('messageBubbles').appendChild(out);
             return out;
         }
