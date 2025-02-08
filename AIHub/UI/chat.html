@@ -94,12 +94,14 @@
     <div id="spacer"></div>
 </div>
 <div class="centre">
-    <div id="chatButtons" class="buttons">
+    <div id="AIchatButtons" class="buttons">
         <button class="chatBtn">
             <svg width="18" height="18">
                 <use href="#redo"></use>
             </svg>
         </button>
+    </div>
+    <div id="MychatButtons" class="buttons myButtons">
         <button class="chatBtn">
             <svg width="18" height="18">
                 <use href="#editText"></use>
@@ -108,7 +110,8 @@
     </div>
     <script>
         insertTemplate(document.currentScript.parentElement, 'chatContainer');
-        unuseTemplate('chatButtons');
+        unuseTemplate('AIchatButtons');
+        unuseTemplate('MychatButtons');
 
         var CONV = [];
 
@@ -167,9 +170,11 @@
                 container.classList.add('myCont');
             }
 
-            var buttons = copyTemplate('chatButtons');
+            var buttons;
             if (role === 'user') {
-                buttons.classList.add('myButtons');
+                buttons = copyTemplate('MychatButtons');
+            } else {
+                buttons = copyTemplate('AIchatButtons');
             }
 
             var inn = document.createElement('div');
