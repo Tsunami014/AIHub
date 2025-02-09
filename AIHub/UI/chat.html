@@ -89,8 +89,19 @@
         position: relative;
     }
 
-    #PromptSetts > input {
+    #PromptSetts > input[type="number"] {
         width: 80%;
+        background-color: whitesmoke;
+    }
+
+    .boolLabel {
+        display: flex;
+        justify-content: center;
+    }
+    .boolLabel > input[type="checkbox"] {
+        width: fit-content;
+        margin-left: 20px;
+        cursor: pointer;
     }
 </style>
 
@@ -306,7 +317,7 @@
                         opts.appendChild(header);
                         break;
                     case 'numInp':
-                        const labelElem = document.createElement('label');
+                        var labelElem = document.createElement('label');
                         labelElem.innerText = it.label;
                         opts.appendChild(labelElem);
                         const numInput = document.createElement('input');
@@ -317,6 +328,36 @@
                         numInput.max = it.max;
                         numInput.step = it.step || 1;
                         opts.appendChild(numInput);
+                        break;
+                    case 'boolInp':
+                        const boolLabel = document.createElement('div');
+                        boolLabel.classList.add('boolLabel');
+                        boolLabel.classList.add('inpParent');
+                        const label = document.createElement('p');
+                        label.innerText = it.label;
+                        boolLabel.appendChild(label);
+                        const boolInput = document.createElement('input');
+                        boolInput.id = id;
+                        boolInput.type = 'checkbox';
+                        boolInput.checked = it.default;
+                        boolLabel.appendChild(boolInput);
+                        opts.appendChild(boolLabel);
+                        break;
+                    case 'choiceInp':
+                        var labelElem = document.createElement('label');
+                        labelElem.innerText = it.label;
+                        opts.appendChild(labelElem);
+                        const choiceInp = document.createElement('select');
+                        choiceInp.id = id;
+                        choiceInp.setAttribute('type', 'choice');
+                        it.choices.forEach((txt, idx) => {
+                            var choice = document.createElement('option');
+                            choice.value = idx;
+                            choice.innerText = txt;
+                            choiceInp.appendChild(choice);
+                        });
+                        choiceInp.value = it.default;
+                        opts.appendChild(choiceInp);
                         break;
                     default:
                         console.error(`Unknown type ${it.type}`)
@@ -370,10 +411,37 @@
 
             var opts = {};
             document.getElementById('PromptSetts').childNodes.forEach(it => {
-                if (!it.id) {
-                    return;
+                var id = it.id;
+                if (!id) {
+                    if (it.classList.contains('inpParent')) {
+                        it = it.lastElementChild;
+                        id = it.id;
+                    }
+                    if (!id) {
+                        return;
+                    }
                 }
-                opts[it.id] = it.value;
+                var val;
+                switch (it.getAttribute('type')) {
+                    case 'checkbox':
+                        val = it.value === 'on';
+                        break;
+                    case 'number':
+                        val = parseFloat(it.value);
+                        break;
+                    case 'choice':
+                        var txt = null;
+                        it.childNodes.forEach(node=>{
+                            if (node.value === it.value) {
+                                txt = node.innerText;
+                            }
+                        });
+                        val = [parseInt(it.value), txt];
+                        break;
+                    default:
+                        return;
+                }
+                opts[id] = val;
             });
             const response = await fetch('/api/v1/ai/run/'+encode(PROVIDER), {
                 method: 'POST',

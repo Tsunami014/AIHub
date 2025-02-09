@@ -84,7 +84,9 @@ class TestProvider(BaseProvider):
         if model == ['echo', 'opts']:
             return [
                 {'type': 'header', 'label': 'HEADER'},
-                {'id': 'NUM1', 'type': 'numInp', 'label': 'Hello this is a test', 'default': 0}
+                {'id': 'NUM1', 'type': 'numInp', 'label': 'Hello this is a test', 'default': 0},
+                {'id': 'BOOL1', 'type': 'boolInp', 'label': 'Test #2', 'default': True},
+                {'id': 'CHOICE1', 'type': 'choiceInp', 'label': 'Make a choice!', 'default': 1, 'choices': ['Hello', 'Goodbye', 'Hello again', 'Another choice', 'Choice #5']}
             ]
         return []
     
