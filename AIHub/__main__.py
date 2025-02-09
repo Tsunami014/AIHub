@@ -117,6 +117,13 @@ def info(modelStr):
     prov, model = splitModel(modelStr)
     return flask.jsonify({'data': prov.getInfo(model)}), 200
 
+@app.route('/api/v1/ai/opts/<modelStr>')
+def opts(modelStr):
+    if modelStr == 'random':
+        return flask.jsonify({'opts': []}), 200
+    prov, model = splitModel(modelStr)
+    return flask.jsonify({'opts': prov.getOpts(model)}), 200
+
 @app.route('/api/v1/chat', methods=['GET', 'POST'])
 def newChat(method=None):
     meth = method or flask.request.method

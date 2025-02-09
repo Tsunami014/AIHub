@@ -42,6 +42,13 @@ class BaseProvider(metaclass=MetaAbc):
         return 'MODEL SELECTED: '+"'s ".join(model)
     
     @staticmethod
+    def getOpts(model):
+        return [
+            {'type': 'header', 'label': 'HEADER, MODELS: '+" ".join(model)},
+            {'type': 'numInp', 'label': 'Hello this is a test', 'default': 0}
+        ]
+    
+    @staticmethod
     def getHierachy():
         return []
 

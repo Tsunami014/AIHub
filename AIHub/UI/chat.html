@@ -88,6 +88,10 @@
         margin: 5px 2px;
         position: relative;
     }
+
+    #PromptSetts > input {
+        width: 80%;
+    }
 </style>
 
 <div id="messages">
@@ -272,7 +276,7 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    'conv': CONV
+                    'conv': newConv
                 })
             });
             json = await resp.json();
@@ -282,6 +286,43 @@
                 return;
             }
             CONV = json.data.messages;
+        }
+
+        async function loadOpts() {
+            const opts = document.getElementById('PromptSetts');
+            const leng = opts.children.length;
+            for (i = 0;i < leng;i++) {
+                opts.removeChild(opts.firstElementChild);
+            }
+            resp = await fetch('/api/v1/ai/opts/'+PROVIDER);
+            json = await resp.json();
+            json.opts.forEach(it => {
+                switch(it.type) {
+                    case 'header':
+                        const header = document.createElement('h4');
+                        header.innerText = it.label;
+                        opts.appendChild(header);
+                        break;
+                    case 'numInp':
+                        const labelElem = document.createElement('label');
+                        labelElem.innerText = it.label;
+                        opts.appendChild(labelElem);
+                        const numInput = document.createElement('input');
+                        numInput.type = 'number';
+                        numInput.defaultValue = it.default;
+                        numInput.min = it.min;
+                        numInput.max = it.max;
+                        numInput.step = it.step || 1;
+                        opts.appendChild(numInput);
+                        break;
+                    default:
+                        console.error(`Unknown type ${it.type}`)
+                }
+            });
+        }
+
+        function onChangeHierachy() {
+            loadOpts();
         }
 
         function scroll() {
