@@ -2,12 +2,28 @@ import g4f.Provider
 from g4f.client import Client
 from AIHub.providers.base import BaseProvider, format
 import random
+from string import printable
 
 __all__ = ['G4FProvider']
 
+PREFIX_LEN = 2
+
 def format2(info, model, done=False):
-    model = [model[0][1:]] + model[1:]
+    model = [stripEmoji(model[0]), stripEmoji(model[1])]
     return format(info, model, done)
+
+def stripEmoji(s):
+    return ''.join(filter(lambda x: x in printable, s))
+
+def getMPrefxs(prov, model):
+    img = "💬"
+    if hasattr(prov, 'image_models'):
+        if model in prov.image_models:
+            img = "🖼️"
+    if hasattr(prov, 'vision_models'):
+        if model in prov.vision_models:
+            img += "👀"
+    return img
 
 def getL(prov):
     if not prov.working or prov.url is None:
@@ -20,8 +36,8 @@ def getL(prov):
         except AttributeError:
             models = []
     name = prov.__name__
-    prefix = ('🔒' if prov.needs_auth else '🔐')
-    return [prefix+name, models]
+    prefix = ('🔒' if prov.needs_auth else '🔐')+("💬" if (not hasattr(prov, "image_models")) or any(i not in prov.image_models for i in models) else "")+("🖼️" if bool(getattr(prov, "image_models", False)) else "")+("👀" if bool(getattr(prov, "vision_models", False)) else "")
+    return [prefix+name, [getMPrefxs(prov, i)+i for i in models]]
 
 class G4FProvider(BaseProvider):
     NAME = 'GPT4Free Provider'
@@ -29,7 +45,14 @@ class G4FProvider(BaseProvider):
     @staticmethod
     def stream(model, conv):
         out = ''
-        if model in (['best'], ['ALL', 'best']):
+        model = [stripEmoji(model[0]), stripEmoji(model[1])]
+
+        if model == ['random']:
+            hierachy = G4FProvider.getHierachy()
+            model = random.choice(hierachy)
+            model = [model[0], random.choice(model[1])]
+        
+        if model in (['best'], ['ANY', 'best']):
             mods = g4f.models._all_models
             random.shuffle(mods)
             for i in mods:
@@ -41,11 +64,6 @@ class G4FProvider(BaseProvider):
             yield format('ERROR: Every model tried errored! Sorry about that.', model, True)
             return
         
-        if model == ['random']:
-            hierachy = G4FProvider.getHierachy()
-            model = random.choice(hierachy)
-            model = [model[0], random.choice(model[1])]
-        
         if model[0] == 'ANY':
             if model[1] == 'random':
                 model = [model[0], random.choice(g4f.models._all_models)]
@@ -54,16 +72,18 @@ class G4FProvider(BaseProvider):
             model[0] = ' ANY '+model[1]
             yield format2('', [model[0], '???'])
         else:
-            prov = g4f.Provider.__map__[model[0][1:]]
+            prov = g4f.Provider.__map__[model[0]]
             if model[1] == 'random':
                 try:
                     avmodels = prov.models
                 except AttributeError:
                     avmodels = prov.get_models()
                 model = [model[0], random.choice(avmodels)]
-            elif model[1] == 'best':
-                model = [model[0], prov.default_model]
-            yield format2('', model)
+            if model[1] == 'best':
+                model = [model[0], None]
+                yield format2('', [model[0], '???'])
+            else:
+                yield format2('', model)
 
         strem = prov.supports_stream
         resp = Client().chat.completions.create(
@@ -76,9 +96,9 @@ class G4FProvider(BaseProvider):
         if strem:
             for i in resp:
                 if hasattr(prov, 'last_provider'):
-                    model[0] = ' '+prov.last_provider.__name__
+                    model[0] = prov.last_provider.__name__
                 else:
-                    model[0] = ' '+prov.__name__
+                    model[0] = prov.__name__
                 resp = i.choices[0].delta.content
                 if resp:
                     out += resp
@@ -89,6 +109,7 @@ class G4FProvider(BaseProvider):
     
     @staticmethod
     def getInfo(model):
+        model = [stripEmoji(model[0]), stripEmoji(model[1])]
         firstBest = False
         if model == ['random']:
             return 'You have selected a RANDOM model from GPT4Free!'
@@ -101,13 +122,18 @@ class G4FProvider(BaseProvider):
                 return 'You have chosen GPT4Free\'s best option; which will try every option available until one works!'
             
             return f'GPT4Free\'s {model[1]} model from {g4f.models.__models__[model[1]][0].base_provider} automatically tries every possible provider that provides the model!'
-        prov = g4f.Provider.__map__[model[0][1:]]
+        prov = g4f.Provider.__map__[model[0]]
         secBest = model[1] == 'best'
         if secBest:
             model = [model[0], prov.default_model]
-        return f"""{model[0][1:]}'s {"best " if secBest else ""}model {model[-1]} is {"GPT4Free's best" if firstBest else "a GPT4Free"} model, which has the following properties:
- - {'Does not require' if not prov.needs_auth else 'Requires'} authentification
+        # getattr(provider, "use_nodriver", False) ???
+        return f"""{model[0]}'s {"best " if secBest else ""}model {model[-1]} is {"GPT4Free's best" if firstBest else "a GPT4Free"} model, which has the following properties:
+{" - Label: "+prov.label+'\n' if hasattr(prov, 'label') else ''}\
+{" - Parent: "+prov.parent+'\n' if hasattr(prov, 'parent') else ''}\
+ - {'Does not require' if not prov.needs_auth else 'Requires'} authentification{" at "+prov.login_url if hasattr(prov, 'login_url') else ''}
  - {'Supports' if prov.supports_stream else 'Does not support'} streaming
+ - {'Is' if model[-1] in getattr(prov, "image_models", []) else 'Is not'} an image model
+ - {'Is' if model[-1] in getattr(prov, "vision_models", []) else 'Is not'} an vision model
  - located at {prov.url}"""
     
     @staticmethod

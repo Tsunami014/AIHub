@@ -109,11 +109,13 @@
         #sideLeft {
             border-right: 2px groove light-dark(rgba(var(--accent-1-light-rgb), 0.7), rgba(var(--accent-1-dark-rgb), 0.7));
             width: 260px;
+            min-width: 260px;
             left: 0;
         }
         #sideRight {
             border-left: 2px groove light-dark(rgba(var(--accent-1-light-rgb), 0.7), rgba(var(--accent-1-dark-rgb), 0.7));
             width: 260px;
+            min-width: 260px;
             right: 0;
         }
         
@@ -183,7 +185,9 @@
             gap: 8px;
         }
         #chatIn {
-            flex: 1;
+            overflow-y: auto;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
         }
 
         #prevChats {
@@ -292,6 +296,43 @@
             return encodeURIComponent(str.replace('/', '\\'));
         }
         function init() {
+            const Chat = document.getElementById("chatIn");
+            Chat.addEventListener("paste", function(e) {
+                e.preventDefault();
+                const pasted = e.clipboardData.getData("text/plain");
+                if (!pasted) {
+                    return;
+                }
+                if (Chat.classList.contains("placeholder")) {
+                    Chat.textContent = "";
+                    Chat.classList.remove("placeholder");
+                }
+                const sel = window.getSelection();
+                if (sel.rangeCount > 0) {
+                    let range = sel.getRangeAt(0);
+                    // Delete any selected content
+                    range.deleteContents();
+                    // Create a text node with the pasted content
+                    const textNode = document.createTextNode(pasted);
+                    // Insert the text node at the caret position
+                    range.insertNode(textNode);
+                    // Move the caret immediately after the inserted text node
+                    range.setStartAfter(textNode);
+                    range.collapse(true);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                } else {
+                    // Fallback: append the text if no caret is found
+                    setChatTxt(getChatTxt() + pasted);
+                }
+                if (getChatTxt() === "") {
+                    Chat.classList.add("placeholder");
+                }
+                if (Chat.classList.contains("placeholder")) {
+                    Chat.innerText = Chat.getAttribute("data-placeholder");
+                }
+            });
+            
             var OSL = document.getElementById("openSideLeft");
             OSL.onclick = function() {
                 var sideLeft = document.getElementById("sideLeft");
@@ -492,7 +533,7 @@
                     hierachyBranch(data.data, 0, '', localStorage.getItem('hierachy'));
                     onChangeHierachy();
                     UpdateText();
-                })
+                });
         }
 
         function home() {
