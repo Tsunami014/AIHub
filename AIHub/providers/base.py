@@ -50,10 +50,6 @@ class BaseProvider(metaclass=MetaAbc):
     @staticmethod
     def getHierachy():
         return []
-    
-    @staticmethod
-    def onError(e, model):
-        return format(f'Sorry, but an error has occured: {e}', model, True)
 
 class TestProvider(BaseProvider):
     NAME = 'Test Provider'

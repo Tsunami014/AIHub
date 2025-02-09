@@ -124,7 +124,3 @@ class G4FProvider(BaseProvider):
     def getHierachy():
         out = [getL(prov) for prov in g4f.Provider.__providers__]
         return [['ANY', g4f.models._all_models]]+[i for i in out if i[1]]
-    
-    @staticmethod
-    def onError(e, model):
-        return format2(f'Sorry, but an error has occured: {e}', model, True)

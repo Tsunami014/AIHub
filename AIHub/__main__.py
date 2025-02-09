@@ -1,5 +1,6 @@
 import flask
 from AIHub import providers
+from AIHub.providers.base import format
 from werkzeug.exceptions import BadRequest
 from multiprocessing import Process, Queue
 from threading import Lock
@@ -91,7 +92,7 @@ def aiRun(modelStr):
                 outmod = model
             else:
                 outmod = json.loads(out[:-1])['model']
-            Q.put(out+prov.onError(e, outmod))
+            Q.put(out+format(f'Sorry, but an error has occured: {e}', outmod, True))
         Q.put(None)
     
     PRO = Process(target=runModel)
