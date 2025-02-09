@@ -52,8 +52,8 @@ class G4FProvider(BaseProvider):
                 model = [model[0], g4f.models._all_models[0]]
             modelInf = g4f.models.__models__[model[1]][0]
             prov = modelInf.best_provider
-            model[0] = ' ANY'
-            yield format2('', [' ANY', '???'])
+            model[0] = ' ANY '+model[1]
+            yield format2('', [model[0], '???'])
         else:
             prov = g4f.Provider.__map__[model[0][1:]]
             if model[1] == 'random':

@@ -34,7 +34,8 @@ gui = ["flask"]
 g4f-extras = [
     "curl_cffi",
     "nodriver",
-    "platformdirs"
+    "platformdirs",
+    "browser_cookie3"
 ]
 
 [project.gui-scripts]

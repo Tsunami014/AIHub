@@ -332,12 +332,10 @@
 
         async function stopAI() {
             const resp = await fetch('/api/v1/ai/stop', {method: 'POST'});
-            json = await resp.json();
-            if (json.status === 'error') {
-                console.error(json);
-                alert(json.message);
+            if (!resp.ok) {
                 return;
             }
+            json = await resp.json();
             enableInp();
         }
 
@@ -357,6 +355,7 @@
         }
 
         async function runAI() {
+            await stopAI();
             disableInp();
             var msg = await addMessage('bot', '');
             var inn = msg.lastElementChild.firstElementChild;

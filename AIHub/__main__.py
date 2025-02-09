@@ -87,7 +87,11 @@ def aiRun(modelStr):
                 out = i
                 Q.put(i)
         except Exception as e:
-            Q.put(out+prov.onError(e, model))
+            if out == '':
+                outmod = model
+            else:
+                outmod = json.loads(out[:-1])['model']
+            Q.put(out+prov.onError(e, outmod))
         Q.put(None)
     
     PRO = Process(target=runModel)
