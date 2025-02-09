@@ -38,45 +38,55 @@ class G4FProvider(BaseProvider):
                     model = [li[0], 'best']
                     break
             else:
-                yield format2('', model)
                 yield format2('Sorry, but an error has occured: No provider found!', model, True)
                 return
         elif model == ['random']:
             hierachy = G4FProvider.getHierachy()
             model = random.choice(hierachy)
             model = [model[0], random.choice(model[1])]
-        prov = g4f.Provider.__map__[model[0][1:]]
-        if model[1] == 'random':
-            try:
-                avmodels = prov.models
-            except AttributeError:
-                avmodels = prov.get_models()
-            model = [model[0], random.choice(avmodels)]
-        elif model[1] == 'best':
-            model = [model[0], prov.default_model]
-        yield format2('', model)
-        try:
-            strem = prov.supports_stream
-            resp = Client().chat.completions.create(
-                model=model[-1],
-                stream=strem,
-                provider=prov,
-                messages=conv,
-                # web_search=False,
-            )
-            if strem:
-                for i in resp:
-                    resp = i.choices[0].delta.content
-                    if resp:
-                        out += resp
-                    yield format2(out, model)
-                yield format2(out, model, True)
-            else:
-                yield format2(resp.choices[0].delta.content, model)
-                yield format2(resp.choices[0].delta.content, model, True)
-        except Exception as e:
-            yield format2(out, model)
-            yield format2(f'{out}{"\n" if out != "" else ""}Sorry, but an error has occured: {e}', model, True)
+        
+        if model[0] == 'ANY':
+            if model[1] == 'random':
+                model = [model[0], random.choice(g4f.models._all_models)]
+            elif model[1] == 'best':
+                model = [model[0], g4f.models._all_models[0]]
+            modelInf = g4f.models.__models__[model[1]][0]
+            prov = modelInf.best_provider
+            model[0] = ' ANY'
+            yield format2('', [' ANY', '???'])
+        else:
+            prov = g4f.Provider.__map__[model[0][1:]]
+            if model[1] == 'random':
+                try:
+                    avmodels = prov.models
+                except AttributeError:
+                    avmodels = prov.get_models()
+                model = [model[0], random.choice(avmodels)]
+            elif model[1] == 'best':
+                model = [model[0], prov.default_model]
+            yield format2('', model)
+
+        strem = prov.supports_stream
+        resp = Client().chat.completions.create(
+            model=model[-1],
+            stream=strem,
+            provider=prov,
+            messages=conv,
+            # web_search=False,
+        )
+        if strem:
+            for i in resp:
+                if hasattr(prov, 'last_provider'):
+                    model[0] = ' '+prov.last_provider.__name__
+                else:
+                    model[0] = ' '+prov.__name__
+                resp = i.choices[0].delta.content
+                if resp:
+                    out += resp
+                yield format2(out, model)
+            yield format2(out, model, True)
+        else:
+            yield format2(resp.choices[0].delta.content, model, True)
     
     @staticmethod
     def getInfo(model):
@@ -94,6 +104,13 @@ class G4FProvider(BaseProvider):
                     break
             else:
                 return 'Sorry, but an error has occured: No provider found!'
+        elif model[0] == 'ANY':
+            if model[1] == 'random':
+                return 'You have selected a RANDOM model from GPT4Free!'
+            elif model[1] == 'best':
+                model = ['ANY', g4f.models._all_models[0]]
+            
+            return f'GPT4Free\'s {model[1]} model from {g4f.models.__models__[model[1]][0].base_provider} automatically tries every possible provider that provides the model!'
         prov = g4f.Provider.__map__[model[0][1:]]
         secBest = model[1] == 'best'
         if secBest:
@@ -106,4 +123,8 @@ class G4FProvider(BaseProvider):
     @staticmethod
     def getHierachy():
         out = [getL(prov) for prov in g4f.Provider.__providers__]
-        return [i for i in out if i[1]]
+        return [['ANY', g4f.models._all_models]]+[i for i in out if i[1]]
+    
+    @staticmethod
+    def onError(e, model):
+        return format2(f'Sorry, but an error has occured: {e}', model, True)

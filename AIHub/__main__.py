@@ -61,7 +61,7 @@ def google_proxy():
     return flask.Response(resp.text, status=resp.status_code, content_type='text/html')
 
 def splitModel(model):
-    spl = model.split(':')
+    spl = model.replace('\\', '/').split(':')
     allprovs = (getattr(providers, i) for i in providers.__all__ if i != 'BaseProvider')
     if spl == ['best']:
         return providers.TestProvider, ['best']
@@ -81,17 +81,23 @@ def aiRun(modelStr):
     Q = Queue()
 
     def runModel():
-        for i in prov.stream(model, [{j: i[j] for j in i if j in ('role', 'content')} for i in flask.request.json['conv']]):
-            Q.put(i)
+        out = ''
+        try:
+            for i in prov.stream(model, [{j: i[j] for j in i if j in ('role', 'content')} for i in flask.request.json['conv']]):
+                out = i
+                Q.put(i)
+        except Exception as e:
+            Q.put(out+prov.onError(e, model))
         Q.put(None)
     
     PRO = Process(target=runModel)
     PRO.start()
     
     def stream():
+        global Q
         while True:
             out = Q.get()
-            if not out:
+            if out is None:
                 return
             yield out
 

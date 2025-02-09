@@ -288,6 +288,9 @@
     <script>
         var PROVIDER = 'best';
         function onChangeHierachy() {}
+        function encode(str) {
+            return encodeURIComponent(str.replace('/', '\\'));
+        }
         function init() {
             var OSL = document.getElementById("openSideLeft");
             OSL.onclick = function() {
@@ -416,7 +419,7 @@
             };
 
             function UpdateText() {
-                fetch('/api/v1/ai/info/'+PROVIDER)
+                fetch('/api/v1/ai/info/'+encode(PROVIDER))
                     .then(resp => resp.json())
                     .then(data => {
                         document.getElementById('AIText').innerText = data.data;

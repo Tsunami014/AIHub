@@ -162,7 +162,7 @@
                 pfpElm.firstElementChild.src = PFPCache[pfp];
                 return;
             }
-            var resp = await fetch(`/proxy/google?q=${pfp[pfp.length-1].replace(' ', '+')}+ai+icon+svg+-huggingface`);
+            var resp = await fetch('/proxy/google?q='+encode(`${pfp[pfp.length-1].replace(' ', '+')}+ai+icon+svg+-huggingface`));
             var text = await resp.text();
             const parser = new DOMParser();
             const doc = parser.parseFromString(text, "text/html");
@@ -294,7 +294,7 @@
             for (i = 0;i < leng;i++) {
                 opts.removeChild(opts.firstElementChild);
             }
-            resp = await fetch('/api/v1/ai/opts/'+PROVIDER);
+            resp = await fetch('/api/v1/ai/opts/'+encode(PROVIDER));
             json = await resp.json();
             json.opts.forEach(it => {
                 switch(it.type) {
@@ -364,7 +364,7 @@
             scroll();
             var usingSpin = true;
 
-            const response = await fetch('/api/v1/ai/run/'+PROVIDER, {
+            const response = await fetch('/api/v1/ai/run/'+encode(PROVIDER), {
                 method: 'POST',
                 cache: "no-cache",
                 keepalive: true,
@@ -387,6 +387,9 @@
                         updateLastMessage('', it.model);
                     }
                     if (it.done === true) {
+                        if (usingSpin) {
+                            unuseTemplate('spinner');
+                        }
                         getPfp(msg.firstElementChild, it.model);
                         inn.firstElementChild.innerText = it.data;
                         updateLastMessage(it.data, it.model);
@@ -396,7 +399,7 @@
                         return;
                     }
 
-                    if (usingSpin) {
+                    if (usingSpin && it.data !== '') {
                         usingSpin = false;
                         unuseTemplate('spinner');
                     }

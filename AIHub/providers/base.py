@@ -16,7 +16,7 @@ class MetaAbc(type):
 
 
 def format(info, model, done=False):
-    return json.dumps({'data': info, 'done': done, 'model': model})+','
+    return json.dumps({'data': str(info), 'done': done, 'model': model})+','
 
 class BaseProvider(metaclass=MetaAbc):
     NAME = 'Base Provider'
@@ -32,7 +32,6 @@ class BaseProvider(metaclass=MetaAbc):
 
         ## How to yield data
          - `format(info, model, done=False)`
-         - You need >= 1 yields before the `done=True`
          - You *should* specify `done=True` (or just True, it's a positional or kw arg) for it to correctly finish the message
         """
         yield format('', model, True)
@@ -51,6 +50,10 @@ class BaseProvider(metaclass=MetaAbc):
     @staticmethod
     def getHierachy():
         return []
+    
+    @staticmethod
+    def onError(e, model):
+        return format(f'Sorry, but an error has occured: {e}', model, True)
 
 class TestProvider(BaseProvider):
     NAME = 'Test Provider'
