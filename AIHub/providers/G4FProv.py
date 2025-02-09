@@ -29,18 +29,19 @@ class G4FProvider(BaseProvider):
     @staticmethod
     def stream(model, conv):
         out = ''
-        if model == ['best']:
-            for prov in g4f.Provider.__providers__:
-                if prov.needs_auth or not prov.supports_stream:
-                    continue
-                li = getL(prov)
-                if li[1]:
-                    model = [li[0], 'best']
-                    break
-            else:
-                yield format2('Sorry, but an error has occured: No provider found!', model, True)
-                return
-        elif model == ['random']:
+        if model in (['best'], ['ALL', 'best']):
+            mods = g4f.models._all_models
+            random.shuffle(mods)
+            for i in mods:
+                try:
+                    yield from G4FProvider.stream(['ANY', i], conv)
+                    return
+                except Exception:
+                    pass
+            yield format('ERROR: Every model tried errored! Sorry about that.', model, True)
+            return
+        
+        if model == ['random']:
             hierachy = G4FProvider.getHierachy()
             model = random.choice(hierachy)
             model = [model[0], random.choice(model[1])]
@@ -48,8 +49,6 @@ class G4FProvider(BaseProvider):
         if model[0] == 'ANY':
             if model[1] == 'random':
                 model = [model[0], random.choice(g4f.models._all_models)]
-            elif model[1] == 'best':
-                model = [model[0], g4f.models._all_models[0]]
             modelInf = g4f.models.__models__[model[1]][0]
             prov = modelInf.best_provider
             model[0] = ' ANY '+model[1]
@@ -94,21 +93,12 @@ class G4FProvider(BaseProvider):
         if model == ['random']:
             return 'You have selected a RANDOM model from GPT4Free!'
         elif model == ['best']:
-            firstBest = True
-            for prov in g4f.Provider.__providers__:
-                if prov.needs_auth or not prov.supports_stream:
-                    continue
-                li = getL(prov)
-                if li[1]:
-                    model = [li[0], 'best']
-                    break
-            else:
-                return 'Sorry, but an error has occured: No provider found!'
+            return 'You have chosen GPT4Free\'s best option; which will try every option available until one works!'
         elif model[0] == 'ANY':
             if model[1] == 'random':
                 return 'You have selected a RANDOM model from GPT4Free!'
             elif model[1] == 'best':
-                model = ['ANY', g4f.models._all_models[0]]
+                return 'You have chosen GPT4Free\'s best option; which will try every option available until one works!'
             
             return f'GPT4Free\'s {model[1]} model from {g4f.models.__models__[model[1]][0].base_provider} automatically tries every possible provider that provides the model!'
         prov = g4f.Provider.__map__[model[0][1:]]
