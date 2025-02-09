@@ -84,7 +84,8 @@ def aiRun(modelStr):
     def runModel():
         out = ''
         try:
-            for i in prov.stream(model, [{j: i[j] for j in i if j in ('role', 'content')} for i in flask.request.json['conv']]):
+            data = flask.request.json
+            for i in prov.stream(model, [{j: i[j] for j in i if j in ('role', 'content')} for i in data['conv']], data['opts']):
                 out = i
                 Q.put(i)
         except Exception as e:

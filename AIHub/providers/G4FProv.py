@@ -43,7 +43,7 @@ class G4FProvider(BaseProvider):
     NAME = 'GPT4Free Provider'
     REPR = '<G4FProvider>'
     @staticmethod
-    def stream(model, conv):
+    def stream(model, conv, opts):
         out = ''
         model = [stripEmoji(model[0]), stripEmoji(model[1])]
 
@@ -69,7 +69,7 @@ class G4FProvider(BaseProvider):
                 model = [model[0], random.choice(g4f.models._all_models)]
             modelInf = g4f.models.__models__[model[1]][0]
             prov = modelInf.best_provider
-            model[0] = ' ANY '+model[1]
+            model[0] = 'ANY '+model[1]
             yield format2('', [model[0], '???'])
         else:
             prov = g4f.Provider.__map__[model[0]]

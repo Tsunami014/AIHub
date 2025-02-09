@@ -297,9 +297,11 @@
             resp = await fetch('/api/v1/ai/opts/'+encode(PROVIDER));
             json = await resp.json();
             json.opts.forEach(it => {
+                const id = it.id || '';
                 switch(it.type) {
                     case 'header':
                         const header = document.createElement('h4');
+                        header.id = id;
                         header.innerText = it.label;
                         opts.appendChild(header);
                         break;
@@ -308,6 +310,7 @@
                         labelElem.innerText = it.label;
                         opts.appendChild(labelElem);
                         const numInput = document.createElement('input');
+                        numInput.id = id;
                         numInput.type = 'number';
                         numInput.defaultValue = it.default;
                         numInput.min = it.min;
@@ -331,8 +334,10 @@
         }
 
         async function stopAI() {
-            const resp = await fetch('/api/v1/ai/stop', {method: 'POST'});
-            if (!resp.ok) {
+            var resp;
+            try {
+                resp = await fetch('/api/v1/ai/stop', {method: 'POST'});
+            } catch (e) {
                 return;
             }
             json = await resp.json();
@@ -363,6 +368,13 @@
             scroll();
             var usingSpin = true;
 
+            var opts = {};
+            document.getElementById('PromptSetts').childNodes.forEach(it => {
+                if (!it.id) {
+                    return;
+                }
+                opts[it.id] = it.value;
+            });
             const response = await fetch('/api/v1/ai/run/'+encode(PROVIDER), {
                 method: 'POST',
                 cache: "no-cache",
@@ -371,7 +383,7 @@
                     'Accept': "text/event-stream",
                     'Content-Type': "application/json"
                 },
-                body: JSON.stringify({'conv': CONV.slice(0, -1)})
+                body: JSON.stringify({'conv': CONV.slice(0, -1), 'opts': opts})
             })
             const reader = response.body.getReader();
 
