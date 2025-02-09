@@ -1,6 +1,7 @@
 import flask
 from AIHub import providers
 from werkzeug.exceptions import BadRequest
+from multiprocessing import Process, Queue
 from threading import Lock
 import json
 import random
@@ -69,10 +70,41 @@ def splitModel(model):
     provs = {str(i): i for i in allprovs}
     return provs[spl[0]], spl[1:]
 
+Q = None
+PRO = None
+
 @app.route('/api/v1/ai/run/<modelStr>', methods=["POST"])
 def aiRun(modelStr):
+    global Q, PRO
     prov, model = splitModel(modelStr)
-    return flask.Response(prov.stream(model, [{j: i[j] for j in i if j in ('role', 'content')} for i in flask.request.json['conv']]), mimetype='text/event-stream')
+
+    Q = Queue()
+
+    def runModel():
+        for i in prov.stream(model, [{j: i[j] for j in i if j in ('role', 'content')} for i in flask.request.json['conv']]):
+            Q.put(i)
+        Q.put(None)
+    
+    PRO = Process(target=runModel)
+    PRO.start()
+    
+    def stream():
+        while True:
+            out = Q.get()
+            if not out:
+                return
+            yield out
+
+    return flask.Response(stream(), mimetype='text/event-stream')
+
+@app.route('/api/v1/ai/stop', methods=["POST"])
+def aiStop():
+    global Q, PRO
+    if PRO is None or Q is None:
+        return flask.jsonify({"status": "error", "message": "AI process not running!"}), 400
+    PRO.kill()
+    Q.put(None)
+    return flask.jsonify({"status": "success", "message": "AI process stopped."}), 200
 
 @app.route('/api/v1/ai/get')
 def getProvs():

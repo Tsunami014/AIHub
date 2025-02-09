@@ -289,7 +289,34 @@
             scrollable.scrollTo({ top: scrollable.scrollHeight, behavior: 'smooth' });
         }
 
+        async function stopAI() {
+            const resp = await fetch('/api/v1/ai/stop', {method: 'POST'});
+            json = await resp.json();
+            if (json.status === 'error') {
+                console.error(json);
+                alert(json.message);
+                return;
+            }
+            enableInp();
+        }
+
+        function disableInp() {
+            const GOBtn = document.getElementById('chatGoBtn');
+            GOBtn.firstElementChild.firstElementChild.setAttribute('href', '#stop');
+            GOBtn.onclick = stopAI;
+            const cont = document.getElementById('chatIn');
+            cont.disabled = true;
+        }
+        function enableInp() {
+            const GOBtn = document.getElementById('chatGoBtn');
+            GOBtn.firstElementChild.firstElementChild.setAttribute('href', '#go');
+            GOBtn.onclick = onChatGo;
+            const cont = document.getElementById('chatIn');
+            cont.disabled = false;
+        }
+
         async function runAI() {
+            disableInp();
             var msg = await addMessage('bot', '');
             var inn = msg.lastElementChild.firstElementChild;
             insertTemplate(inn, 'spinner');
@@ -324,6 +351,7 @@
                         updateLastMessage(it.data, it.model);
                         scroll();
                         done = true;
+                        enableInp();
                         return;
                     }
 
@@ -336,7 +364,8 @@
                     scroll();
                 });
                 if (done) {
-                    break;
+                    enableInp();
+                    return;
                 };
             }
         }
@@ -345,11 +374,9 @@
             // if (!confirm('You sure you want to redo?')) {
             //     return;
             // }
-            const cont = document.getElementById('chatIn');
-            cont.disabled = true;
+            disableInp();
             await delElm(elm, false);
             await runAI();
-            cont.disabled = false;
         }
 
         async function delElm(elm, ask = true) {
@@ -409,19 +436,17 @@
         }
 
         async function onChatGo() {
-            cont = document.getElementById('chatIn');
-            cont.disabled = true;
             const txt = getChatTxt();
             if (txt === "") {
                 return;
             }
+            disableInp();
             if (txt.trim()) {
                 await addMessage('user', txt);
             }
             setChatTxt("");
             scroll();
             await runAI();
-            cont.disabled = false;
         }
 
         async function loadData() {
