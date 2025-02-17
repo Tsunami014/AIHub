@@ -45,7 +45,7 @@ class G4FProvider(BaseProvider):
     @staticmethod
     def stream(model, conv, opts):
         out = ''
-        model = [stripEmoji(model[0]), stripEmoji(model[1])]
+        model = [stripEmoji(i) for i in model]
 
         if model == ['random']:
             hierachy = G4FProvider.getHierachy()
@@ -97,7 +97,7 @@ class G4FProvider(BaseProvider):
             for i in resp:
                 if hasattr(prov, 'last_provider'):
                     model[0] = prov.last_provider.__name__
-                else:
+                else: # TODO: replace window location for switching chats so it appears in history
                     model[0] = prov.__name__
                 resp = i.choices[0].delta.content
                 if resp:
@@ -109,7 +109,7 @@ class G4FProvider(BaseProvider):
     
     @staticmethod
     def getInfo(model):
-        model = [stripEmoji(model[0]), stripEmoji(model[1])]
+        model = [stripEmoji(i) for i in model]
         firstBest = False
         if model == ['random']:
             return 'You have selected a RANDOM model from GPT4Free!'

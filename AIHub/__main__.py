@@ -58,7 +58,10 @@ def google_proxy():
     if not q:
         return flask.Response("Query parameter is missing.", status=400)
     url = f"https://www.google.com/search?q={q}&udm=2"
-    resp = requests.get(url)
+    try:
+        resp = requests.get(url)
+    except:
+        return flask.jsonify({"status": "error", "message": "Cannot reach google servers!"}), 400
     return flask.Response(resp.text, status=resp.status_code, content_type='text/html')
 
 def splitModel(model):

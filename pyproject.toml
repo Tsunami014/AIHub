@@ -8,7 +8,8 @@ description = "A buncha AI stuff to use in your projects!"
 version = "0.0.0"
 
 dependencies = [
-    "g4f[all]"
+    "g4f[all]",
+    "ollama"
 ]
 
 authors = [
