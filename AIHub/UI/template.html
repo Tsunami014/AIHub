@@ -287,6 +287,24 @@
             padding: 15px;
             border-radius: 5px;
             border: solid 2px rgba(125, 125, 125, 0.8);
+            padding-top: 5px;
+        }
+        .code .codetop {
+            width: calc(100% + 15px);
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .code .codelang {
+            width: inherit;
+            pointer-events: none;
+            font-size: small;
+        }
+        .code button {
+            margin-top: 0;
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            white-space: nowrap;
         }
 
         .in img {
@@ -327,6 +345,15 @@
         function encode(str) {
             return encodeURIComponent(str.replace('/', '\\'));
         }
+        function copyCodeBlock(elm) {
+            navigator.clipboard.writeText(elm.parentElement.parentElement.lastElementChild.innerText);
+            let origTxt = elm.innerText;
+            elm.innerText = '✔ Copied!';
+            setTimeout(()=>{
+                elm.innerText = origTxt;
+                elm.blur();
+            }, 1000)
+        }
         function formatText(elm, str) {
             var safeText = str
                 .replaceAll(/&/gm, "&amp;")
@@ -336,6 +363,7 @@
                 .replaceAll(/'/gm, "&#039;");
             
             var blocks = [];
+            // TODO: Backslashes
             safeText.split('```').forEach((val, idx)=>{
                 var newVal;
                 if (idx % 2 == 0) {
@@ -407,7 +435,7 @@
                     
                     if (!language) { language = 'plain' };
 
-                    newVal = `<div class="code code-${language}">${code}</div><br>`;
+                    newVal = `<div class="code"><div class="codetop"><span class="codelang">${language}</span><button onclick="copyCodeBlock(this)">📋️ Copy</button></div><div class="code-${language}">${code}</div></div><br>`;
                 }
                 blocks.push(
                     newVal
