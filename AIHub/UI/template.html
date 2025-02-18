@@ -147,7 +147,7 @@
             background-color: whitesmoke;
             border: 2px solid light-dark(rgba(var(--accent-2-light-rgb), 0.4), rgba(var(--accent-2-dark-rgb), 0.4));
             border-radius: 10px;
-            padding: 10px 10px;
+            padding: 15px;
             width: 100%;
             accent-color: rgba(var(--accent-2-strong-rgb), 0.5);
             cursor: text;
@@ -277,6 +277,18 @@
             opacity: 1;
         }
 
+        .quote {
+            background-color: rgba(125, 125, 125, 0.5);
+            border-left: solid 3px rgba(64, 64, 64, 64, 0.8);
+            padding-left: 2px;
+        }
+
+        .code {
+            padding: 15px;
+            border-radius: 5px;
+            border: solid 2px rgba(125, 125, 125, 0.8);
+        }
+
 
         .sideAnim {
             width: 0 !important;
@@ -303,29 +315,52 @@
                 .replaceAll(/"/gm, "&quot;")
                 .replaceAll(/'/gm, "&#039;");
             
-            var formattedText = safeText
-                // TODO: backslash
-                .replaceAll(/\*\*(\**.+?\**)\*\*/g, '<b>$1</b>')
-                .replaceAll(/\*(.+?)\*/g, '<i>$1</i>')
+            var blocks = [];
+            safeText.split('```').forEach((val, idx)=>{
+                var newVal;
+                if (idx % 2 == 0) {
+                    newVal = val
+                        .replaceAll(/^ ?[-*](.*)/gm, '<ul><li>$1</li></ul>')
+                        .replaceAll('</ul><ul>', '')
+                        .replaceAll(/^ ?(\d+)[.)]?(.*)/gm, '<ol><li value=$1>$2</li></ol>')
+                        .replaceAll('</ol><ol>', '')
+                        
+                        .replaceAll(/^&gt; ?(.+)\n?/gm, '<span class="quote">$1</span><br>')
 
-                .replaceAll(/^ ?[-*](.*)/gm, '<ul><li>$1</li></ul>')
-                .replaceAll('</ul><ul>', '')
-                .replaceAll(/^ ?(\d+)[.)]?(.*)/gm, '<ol><li value=$1>$2</li></ol>')
-                .replaceAll('</ol><ol>', '')
+                        .replaceAll(/^# ([^\n]*)/gm, '<h1>$1</h1>')
+                        .replaceAll(/^## ([^\n]*)/gm, '<h2>$1</h2>')
+                        .replaceAll(/^### ([^\n]*)/gm, '<h3>$1</h3>')
+                        .replaceAll(/^#### ([^\n]*)/gm, '<h4>$1</h4>')
 
-                .replaceAll(/^# ([^\n]*)/gm, '<h1>$1</h1>')
-                .replaceAll(/^## ([^\n]*)/gm, '<h2>$1</h2>')
-                .replaceAll(/^### ([^\n]*)/gm, '<h3>$1</h3>')
-                .replaceAll(/^#### ([^\n]*)/gm, '<h4>$1</h4>')
+                        .replaceAll(/>\n+/gm, '>')
+                        .replaceAll('\n</div>', '</div>')
 
-                .replaceAll(/>\n+/gm, '>')
+                        .replaceAll(/\*\*(\**.+?\**)\*\*/g, '<b>$1</b>')
+                        .replaceAll(/\*(.+?)\*/g, '<i>$1</i>')
+                } else {
+                    const newlineIndex = val.indexOf('\n');
+                    let language = '';
+                    let code = val;
+                    
+                    if (newlineIndex !== -1) {
+                        language = val.slice(0, newlineIndex).trim();
+                        code = val.slice(newlineIndex + 1);
+                    }
+                    
+                    if (!language) { language = 'plain' };
 
-                .replaceAll('\t', '&emsp;')
-                .replaceAll(/^ +/gm, match => '&nbsp;'.repeat(match.length))
-                .replaceAll('\n\n', '<br>')
-                .replaceAll('\n', '<br>')
+                    newVal = `<div class="code code-${language}">${code}</div><br>`;
+                }
+                blocks.push(
+                    newVal
+                        .replaceAll('\t', '&emsp;')
+                        .replaceAll(/^ +/gm, match => '&nbsp;'.repeat(match.length))
+                        .replaceAll('\n\n', '<br>')
+                        .replaceAll('\n', '<br>')
+                )
+            })
 
-            elm.innerHTML = formattedText;
+            elm.innerHTML = blocks.join('');
         }
         function init() {
             const Chat = document.getElementById("chatIn");
