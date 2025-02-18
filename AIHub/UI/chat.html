@@ -389,7 +389,24 @@
         var scrlAtBtm = true;
         var waitingForScrl = false;
         var interruptScrlWait = false;
+        let userScrolling = false;
+
+        function setUserScrolling() {
+            userScrolling = true;
+            setTimeout(() => (userScrolling = false), 100);
+        }
+
+        document.getElementById('messages').addEventListener('wheel', setUserScrolling);
+        document.getElementById('messages').addEventListener('touchmove', setUserScrolling);
+        document.getElementById('messages').addEventListener('keydown', (event) => {
+            if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', 'Space'].includes(event.key)) {
+                setUserScrolling();
+            }
+        });
         function onScrollMsgs() {
+            if (!userScrolling) {
+                return;
+            }
             interruptScrlWait = true;
             if (!waitingForScrl) {
                 scrlAtBtm = false;
