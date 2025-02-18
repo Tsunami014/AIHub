@@ -31,7 +31,7 @@ class OllamaProvider(BaseProvider):
             realm = [i for i in ms if i.model == model][0]
         end = ""
         yield format('', [realm.details.parent_model or 'OLLAMA', model])
-        for part in ollama.chat(model, [ollama.Message(role=i['role'], content=i['content']) for i in conv], stream=True):
+        for part in ollama.chat(model, [ollama.Message(role=i['role'].replace('bot', 'assistant'), content=i['content']) for i in conv], stream=True):
             end += part.message.content
             yield format(end, [realm.details.parent_model or 'OLLAMA', model], part.done)
     
