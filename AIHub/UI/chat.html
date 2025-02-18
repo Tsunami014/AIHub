@@ -33,7 +33,7 @@
         align-items: center;
         width: fit-content;
         border-radius: 10px;
-        padding: 0px 10px;
+        padding: 10px;
         max-width: 50%;
     }
     .myIn {
@@ -233,9 +233,9 @@
                     inn.classList.add('anim');
                 }, 1)
             }
-            var p = document.createElement('p');
-            p.innerText = content;
-            inn.appendChild(p);
+            var span = document.createElement('span');
+            formatText(span, content)
+            inn.appendChild(span);
             container.appendChild(inn);
             container.appendChild(buttons);
             out.appendChild(container);
@@ -470,7 +470,8 @@
                             unuseTemplate('spinner');
                         }
                         getPfp(msg.firstElementChild, it.model);
-                        inn.firstElementChild.innerText = it.data;
+                        formatText(inn.firstElementChild, it.data);
+
                         updateLastMessage(it.data, it.model);
                         scroll();
                         done = true;

@@ -295,6 +295,38 @@
         function encode(str) {
             return encodeURIComponent(str.replace('/', '\\'));
         }
+        function formatText(elm, str) {
+            var safeText = str
+                .replaceAll(/&/gm, "&amp;")
+                .replaceAll(/</gm, "&lt;")
+                .replaceAll(/>/gm, "&gt;")
+                .replaceAll(/"/gm, "&quot;")
+                .replaceAll(/'/gm, "&#039;");
+            
+            var formattedText = safeText
+                // TODO: backslash
+                .replaceAll(/\*\*(\**.+?\**)\*\*/g, '<b>$1</b>')
+                .replaceAll(/\*(.+?)\*/g, '<i>$1</i>')
+
+                .replaceAll(/^ ?[-*](.*)/gm, '<ul><li>$1</li></ul>')
+                .replaceAll('</ul><ul>', '')
+                .replaceAll(/^ ?(\d+)[.)]?(.*)/gm, '<ol><li value=$1>$2</li></ol>')
+                .replaceAll('</ol><ol>', '')
+
+                .replaceAll(/^# ([^\n]*)/gm, '<h1>$1</h1>')
+                .replaceAll(/^## ([^\n]*)/gm, '<h2>$1</h2>')
+                .replaceAll(/^### ([^\n]*)/gm, '<h3>$1</h3>')
+                .replaceAll(/^#### ([^\n]*)/gm, '<h4>$1</h4>')
+
+                .replaceAll(/>\n+/gm, '>')
+
+                .replaceAll('\t', '&emsp;')
+                .replaceAll(/^ +/gm, match => '&nbsp;'.repeat(match.length))
+                .replaceAll('\n\n', '<br>')
+                .replaceAll('\n', '<br>')
+
+            elm.innerHTML = formattedText;
+        }
         function init() {
             const Chat = document.getElementById("chatIn");
             Chat.addEventListener("paste", function(e) {
