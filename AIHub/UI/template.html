@@ -279,7 +279,7 @@
 
         .quote {
             background-color: rgba(125, 125, 125, 0.5);
-            border-left: solid 3px rgba(64, 64, 64, 64, 0.8);
+            border-left: solid 3px rgba(64, 64, 64, 0.8);
             padding-left: 2px;
         }
 
@@ -287,6 +287,11 @@
             padding: 15px;
             border-radius: 5px;
             border: solid 2px rgba(125, 125, 125, 0.8);
+        }
+
+        .in img {
+            min-width: 14px;
+            min-height: 14px;
         }
 
 
@@ -320,10 +325,19 @@
                 var newVal;
                 if (idx % 2 == 0) {
                     newVal = val
-                        .replaceAll(/^ ?[-*](.*)/gm, '<ul><li>$1</li></ul>')
-                        .replaceAll('</ul><ul>', '')
-                        .replaceAll(/^ ?(\d+)[.)]?(.*)/gm, '<ol><li value=$1>$2</li></ol>')
-                        .replaceAll('</ol><ol>', '')
+                        .replaceAll(/^(\s*)[-*] (.*)/gm, (_, spaces, content) => {
+                            let margin = Math.floor(spaces.replace('\t', '    ').length / 2)*2;
+                            return `<ul><li style="margin-left: ${margin}em;">${content}</li></ul>`;
+                        })
+                        .replaceAll(/<\/ul>\s*<ul>/g, '')
+                        .replaceAll(/^(\s*)(\d+)[.) ](.*)/gm, (_, spaces, number, content) => {
+                            let margin = Math.floor(spaces.replace('\t', '    ').length / 2)*2;
+                            return `<ol><li value="${number}" style="margin-left: ${margin}em;">${content}</li></ol>`;
+                        })
+                        .replaceAll(/<\/ol>\s*<ol>/g, '')
+                        
+                        .replaceAll(/!\[(.*)\]\((.*)\)/g, '<img href="$2">$1</img>')
+                        .replaceAll(/\[(.*)\]\((.*)\)/g, '<a href="$2">$1</a>')
                         
                         .replaceAll(/^&gt; ?(.+)\n?/gm, '<span class="quote">$1</span><br>')
 
@@ -331,12 +345,16 @@
                         .replaceAll(/^## ([^\n]*)/gm, '<h2>$1</h2>')
                         .replaceAll(/^### ([^\n]*)/gm, '<h3>$1</h3>')
                         .replaceAll(/^#### ([^\n]*)/gm, '<h4>$1</h4>')
+                        .replaceAll(/^##### ([^\n]*)/gm, '<h5>$1</h5>')
+                        .replaceAll(/^###### ([^\n]*)/gm, '<h6>$1</h6>')
+
+                        .replaceAll(/^[*\-_]{3}$/gm, '<hr>')
 
                         .replaceAll(/>\n+/gm, '>')
                         .replaceAll('\n</div>', '</div>')
 
-                        .replaceAll(/\*\*(\**.+?\**)\*\*/g, '<b>$1</b>')
-                        .replaceAll(/\*(.+?)\*/g, '<i>$1</i>')
+                        .replaceAll(/[*_][*_](.+?)[*_][*_](?![*_])/g,'<b>$1</b>')
+                        .replaceAll(/[*_]([^*_><\n]+)[*_]/g, '<i>$1</i>')
                 } else {
                     const newlineIndex = val.indexOf('\n');
                     let language = '';
