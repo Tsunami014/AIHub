@@ -31,10 +31,8 @@
     .in {
         display: flex;
         align-items: center;
-        width: fit-content;
         border-radius: 10px;
         padding: 10px;
-        max-width: 50%;
     }
     .myIn {
         background-color: rgba(var(--accent-1-strong-rgb), 0.5);
@@ -68,6 +66,10 @@
         bottom: calc(100% + 10px);
     }
 
+    .msgcontainer {
+        max-width: 60%;
+        width: fit-content;
+    }
     .myCont {
         display: flex;
         flex-direction: column;
@@ -75,7 +77,6 @@
     }
 
     .buttons {
-        width: 50%;
         margin: 0px 5px;
         display: flex;
         min-width: fit-content;
@@ -208,6 +209,7 @@
             }
 
             var container = document.createElement('div');
+            container.classList.add('msgcontainer')
             if (role === 'user') {
                 container.classList.add('myCont');
             }

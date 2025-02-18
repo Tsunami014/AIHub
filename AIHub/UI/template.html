@@ -283,43 +283,43 @@
             padding-left: 2px;
         }
 
-        .code {
+        .code-block {
             padding: 15px;
             border-radius: 5px;
             border: solid 2px rgba(125, 125, 125, 0.8);
             padding-top: 5px;
         }
-        .code .codetop {
+        .code-block .codetop {
             width: calc(100% + 15px);
             display: flex;
             align-items: center;
             margin-bottom: 5px;
         }
-        .code .codelang {
+        .code-block .codelang {
             width: inherit;
             pointer-events: none;
             font-size: small;
         }
-        .code button {
+        .code-block button {
             margin-top: 0;
             margin-bottom: 5px;
             padding: 5px 10px;
             white-space: nowrap;
         }
 
-        .in img {
+        .format-img {
             min-width: 14px;
             min-height: 14px;
         }
 
-        .in table {
+        .format-table {
             border-collapse: collapse;
             border-style: hidden;
             border-radius: 5px;
             box-shadow: 0 0 0 1px #666;
         }
 
-        .in td {
+        .format-table td {
             border: 1px solid grey;
         }
 
@@ -391,7 +391,7 @@
                                 }
                             });
 
-                            return `<table>${end}</table>`
+                            return `<table class="format-table">${end}</table>`
                         })
                         .replaceAll(/^(\s*)[-*] (.*)/gm, (_, spaces, content) => {
                             let margin = Math.floor(spaces.replace('\t', '    ').length / 2)*2;
@@ -404,7 +404,7 @@
                         })
                         .replaceAll(/<\/ol>\s*<ol>/g, '')
                         
-                        .replaceAll(/!\[(.*)\]\((.*)\)/g, '<img href="$2" alt="$1">')
+                        .replaceAll(/!\[(.*)\]\((.*)\)/g, '<img class="format-img" href="$2" alt="$1">')
                         .replaceAll(/\[(.*)\]\((.*)\)/g, '<a href="$2">$1</a>')
                         
                         .replaceAll(/^&gt; ?(.+)\n?/gm, '<span class="quote">$1</span><br>')
@@ -435,7 +435,7 @@
                     
                     if (!language) { language = 'plain' };
 
-                    newVal = `<div class="code"><div class="codetop"><span class="codelang">${language}</span><button onclick="copyCodeBlock(this)">📋️ Copy</button></div><div class="code-${language}">${code}</div></div><br>`;
+                    newVal = `<div class="code-block"><div class="codetop"><span class="codelang">${language}</span><button onclick="copyCodeBlock(this)">📋️ Copy</button></div><div class="code-${language}">${code}</div></div><br>`;
                 }
                 blocks.push(
                     newVal
