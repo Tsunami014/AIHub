@@ -92,7 +92,7 @@
             background-color: whitesmoke;
         }
         .sidebarTrans {
-            transition: width 0.7s var(--transition);
+            transition: all 0.7s var(--transition);
         }
         .sidebarColour {
             background-color: var(--primary-1);
@@ -283,6 +283,14 @@
             padding-left: 2px;
         }
 
+        .code-inline {
+            border: solid 1px rgba(125, 125, 125, 0.25);
+            background-color: rgba(125, 125, 125, 0.25);
+            border-radius: 5px;
+            font-family:'Courier New', Courier, monospace;
+            padding: 2px;
+        }
+
         .code-block {
             padding: 15px;
             border-radius: 5px;
@@ -330,6 +338,7 @@
 
         .sideAnim {
             width: 0 !important;
+            min-width: 0 !important;
             border: none !important;
             pointer-events: none !important;
         }
@@ -415,6 +424,7 @@
                         .replaceAll(/^#### ([^\n]*)/gm, '<h4>$1</h4>')
                         .replaceAll(/^##### ([^\n]*)/gm, '<h5>$1</h5>')
                         .replaceAll(/^###### ([^\n]*)/gm, '<h6>$1</h6>')
+                        .replaceAll(/`([^`\n]*)`/g, '<span class="code-inline">$1</span>')
 
                         .replaceAll(/^[*\-_]{3}$/gm, '<hr>')
 
