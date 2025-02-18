@@ -202,12 +202,19 @@
             align-items: center;
             justify-content: center;
             width: calc(100% - 8px * 2);
+            min-height: 16px;
+            padding: 0;
+            padding-left: 10px;
+        }
+        .prevChatBtn > span {
+            width: inherit;
         }
         .moreBtn {
-            position: absolute;
             display: flex;
-            right: 0;
             padding: 0px 10px;
+            margin: 0;
+            margin-left: 10px;
+            flex-shrink: inherit
         }
 
         #morePage {
