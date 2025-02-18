@@ -294,6 +294,21 @@
             min-height: 14px;
         }
 
+        .in table {
+            border-collapse: collapse;
+            border-style: hidden;
+            border-radius: 5px;
+            box-shadow: 0 0 0 1px #666;
+        }
+
+        .in td {
+            border: 1px solid grey;
+        }
+
+        .table-top {
+            border-bottom: 2px solid black !important;
+        }
+
 
         .sideAnim {
             width: 0 !important;
@@ -325,6 +340,31 @@
                 var newVal;
                 if (idx % 2 == 0) {
                     newVal = val
+                        .replaceAll(/^(?:(?:\|.*)+\|\n){2,}/gm,
+                        (match) => {
+                            var spl = match.split('\n');
+                            // let weighting = spl[1].split('|'); // TODO
+                            var end = '<tr>';
+                            spl[0].split('|').forEach(val=>{
+                                if (val) {
+                                    end += `<td class="table-top"><b>${val}</b></td>`;
+                                }
+                            });
+                            end += '</tr>';
+                            spl.slice(2).forEach(row=>{
+                                if (row) {
+                                    end += '<tr>';
+                                    row.split('|').forEach(val=>{
+                                        if (val) {
+                                            end += `<td>${val}</td>`;
+                                        }
+                                    });
+                                    end += '</tr>';
+                                }
+                            });
+
+                            return `<table>${end}</table>`
+                        })
                         .replaceAll(/^(\s*)[-*] (.*)/gm, (_, spaces, content) => {
                             let margin = Math.floor(spaces.replace('\t', '    ').length / 2)*2;
                             return `<ul><li style="margin-left: ${margin}em;">${content}</li></ul>`;
@@ -336,7 +376,7 @@
                         })
                         .replaceAll(/<\/ol>\s*<ol>/g, '')
                         
-                        .replaceAll(/!\[(.*)\]\((.*)\)/g, '<img href="$2">$1</img>')
+                        .replaceAll(/!\[(.*)\]\((.*)\)/g, '<img href="$2" alt="$1">')
                         .replaceAll(/\[(.*)\]\((.*)\)/g, '<a href="$2">$1</a>')
                         
                         .replaceAll(/^&gt; ?(.+)\n?/gm, '<span class="quote">$1</span><br>')
