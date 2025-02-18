@@ -104,11 +104,26 @@
         margin-left: 20px;
         cursor: pointer;
     }
+
+    #goToBottom {
+        height: fit-content;
+    }
+    #goToBottomContainer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        justify-content: center;
+        display: flex;
+    }
 </style>
 
-<div id="messages">
+<div id="messages" onscroll="onScrollMsgs()">
     <div id="messageBubbles"><br></div>
     <div id="spacer"></div>
+</div>
+<div id="goToBottomContainer">
+    <button id="goToBottom" onclick="scrollMsgs()">🡇</button>
 </div>
 <div class="centre">
     <div id="AIchatButtons" class="buttons">
@@ -371,9 +386,56 @@
             loadOpts();
         }
 
-        function scroll() {
+        var scrlAtBtm = true;
+        var waitingForScrl = false;
+        var interruptScrlWait = false;
+        function onScrollMsgs() {
+            interruptScrlWait = true;
+            if (!waitingForScrl) {
+                scrlAtBtm = false;
+                const bottomBtn = document.getElementById('goToBottom');
+                bottomBtn.style.display = 'block';
+            }
+            updateHei();
+        }
+
+        function updateHei() {
+            const cont = document.getElementById('chatContainer');
+            var hei = cont.offsetHeight + 17*2;
+            const bottomCont = document.getElementById('goToBottomContainer');
+            bottomCont.style.height = `calc(3em + ${hei}px)`
+        }
+        document.getElementById('chatIn').addEventListener("input", updateHei);
+
+        function scrollMsgs() {
             const scrollable = document.getElementById('messages');
             scrollable.scrollTo({ top: scrollable.scrollHeight, behavior: 'smooth' });
+            waitForScrollEnd(scrollable);
+        }
+        function waitForScrollEnd(container, wait = false) {
+            interruptScrlWait = false;
+            if (wait) {
+                waitingForScrl = true;
+            }
+            const checkIfAtBottom = () => {
+                if (interruptScrlWait) {
+                    if (wait) {
+                        scrollable.scrollTo({ top: scrollable.scrollHeight, behavior: 'smooth' });
+                    } else {
+                        return;
+                    }
+                }
+                if (container.scrollTop + container.clientHeight >= container.scrollHeight - 0.5) {
+                    container.scrollTop = container.scrollHeight;
+                    const bottomBtn = document.getElementById('goToBottom');
+                    bottomBtn.style.display = 'none';
+                    scrlAtBtm = true;
+                    waitingForScrl = false;
+                } else {
+                    requestAnimationFrame(checkIfAtBottom);
+                }
+            };
+            requestAnimationFrame(checkIfAtBottom);
         }
 
         async function stopAI() {
@@ -408,7 +470,7 @@
             var msg = await addMessage('bot', '');
             var inn = msg.lastElementChild.firstElementChild;
             insertTemplate(inn, 'spinner');
-            scroll();
+            scrollMsgs(true);
             var usingSpin = true;
 
             var opts = {};
@@ -475,7 +537,7 @@
                         formatText(inn.firstElementChild, it.data);
 
                         updateLastMessage(it.data, it.model);
-                        scroll();
+                        scrollMsgs();
                         done = true;
                         enableInp();
                         return;
@@ -487,7 +549,9 @@
                     }
                     formatText(inn.firstElementChild, it.data);
                     updateLastMessage(it.data, it.model);
-                    scroll();
+                    if (scrlAtBtm) {
+                        scrollMsgs();
+                    }
                 });
                 if (done) {
                     enableInp();
@@ -571,7 +635,7 @@
                 await addMessage('user', txt);
             }
             setChatTxt("");
-            scroll();
+            scrollMsgs();
             await runAI();
         }
 
@@ -594,18 +658,19 @@
                 return;
             }
             CONV = data.data.messages;
-            if (CONV.length < 2) { // First message; came straight from init
+            if (CONV.length < 2) { // First message; came straight from init //FIXME
                 CONV.forEach(element => {
                     makeMessage(element.role, element.content, pfp=element.pfp);
                 });
-                scroll();
+                scrollMsgs(true);
                 runAI();
             } else {
                 CONV.forEach(element => {
                     makeMessage(element.role, element.content, false, element.pfp);
                 });
                 const scrollable = document.getElementById('messages');
-                scrollable.scrollTo({ top: scrollable.scrollHeight });
+                scrollable.scrollTop = scrollable.scrollHeight;
+                waitForScrollEnd(scrollable);
             }
         }
 

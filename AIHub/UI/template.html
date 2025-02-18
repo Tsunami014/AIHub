@@ -373,7 +373,7 @@
             
             var blocks = [];
             // TODO: Backslashes
-            safeText.split('```').forEach((val, idx)=>{
+            safeText.split(/^```/gm).forEach((val, idx)=>{
                 var newVal;
                 if (idx % 2 == 0) {
                     newVal = val
