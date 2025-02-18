@@ -57,7 +57,7 @@ class G4FProvider(BaseProvider):
             random.shuffle(mods)
             for i in mods:
                 try:
-                    yield from G4FProvider.stream(['ANY', i], conv)
+                    yield from G4FProvider.stream(['ANY', i], conv, opts)
                     return
                 except Exception:
                     pass
