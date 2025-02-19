@@ -342,6 +342,56 @@
             border-bottom: 2px solid black !important;
         }
 
+        .overlay {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            transition: opacity 500ms;
+            visibility: hidden;
+            opacity: 0;
+            z-index: 2;
+        }
+        .overlay.overlay-open {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .popup {
+            margin: 70px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 5px;
+            width: 60%;
+            height: 70vh;
+            overflow: clip;
+            position: relative;
+        }
+
+        .popup .close {
+            position: absolute;
+            top: 0;
+            right: 20px;
+            font-size: 30px;
+            font-weight: bold;
+            text-decoration: none;
+            color: #333;
+        }
+        .popup .close:hover {
+            color: #06D85F;
+        }
+
+        #popupContent {
+            border: solid 1px black;
+            border-radius: 5px;
+            width: 100%;
+            height: calc(100% - 20px);
+            top: 20px;
+            position: relative;
+            overflow: clip;
+        }
 
         .sideAnim {
             width: 0 !important;
@@ -362,13 +412,20 @@
             return encodeURIComponent(str.replace('/', '\\'));
         }
         function copyCodeBlock(elm) {
-            navigator.clipboard.writeText(elm.parentElement.parentElement.lastElementChild.innerText);
+            navigator.clipboard.writeText(elm.parentElement.parentElement.lastElementChild.innerText.replaceAll(/\s(?<![\n\t\r\f\v ])/g, ' '));
             let origTxt = elm.innerText;
             elm.innerText = '✔ Copied!';
             setTimeout(()=>{
                 elm.innerText = origTxt;
                 elm.blur();
             }, 1000)
+        }
+        function runHTML(elm) {
+            const container = document.getElementById('popupContent');
+            const shadow = container.attachShadow({ mode: 'closed' });
+            console.log(elm.parentElement.parentElement.lastElementChild.innerText)
+            shadow.innerHTML = elm.parentElement.parentElement.lastElementChild.innerText.replaceAll(/\s(?<![\n\t\r\f\v ])/g, ' ');
+            document.getElementById('popup').classList.add('overlay-open');
         }
         function formatText(elm, str) {
             var safeText = str
@@ -380,7 +437,7 @@
             
             var blocks = [];
             // TODO: Backslashes
-            safeText.split(/^```/gm).forEach((val, idx)=>{
+            safeText.split(/^\s*```/gm).forEach((val, idx)=>{
                 var newVal;
                 if (idx % 2 == 0) {
                     newVal = val
@@ -431,7 +488,7 @@
                         .replaceAll(/^#### ([^\n]*)/gm, '<h4>$1</h4>')
                         .replaceAll(/^##### ([^\n]*)/gm, '<h5>$1</h5>')
                         .replaceAll(/^###### ([^\n]*)/gm, '<h6>$1</h6>')
-                        .replaceAll(/`([^`\n]*)`/g, '<span class="code-inline">$1</span>')
+                        .replaceAll(/`([^`\n]+)`/g, '<span class="code-inline">$1</span>')
 
                         .replaceAll(/^[*\-_]{3}$/gm, '<hr>')
 
@@ -450,9 +507,17 @@
                         code = val.slice(newlineIndex + 1);
                     }
                     
-                    if (!language) { language = 'plain' };
+                    var btn = '';
+                    if (!language) {
+                        language = 'plain'
+                    } else {
+                        const lang = language.toLowerCase().trim();
+                        if (lang === "html") {
+                            btn = '<button onclick="runHTML(this)">💻Run code</button>'
+                        }
+                    }
 
-                    newVal = `<div class="code-block"><div class="codetop"><span class="codelang">${language}</span><button onclick="copyCodeBlock(this)">📋️ Copy</button></div><div class="code-${language}">${code}</div></div><br>`;
+                    newVal = `<div class="code-block"><div class="codetop"><span class="codelang">${language}</span>${btn}<button onclick="copyCodeBlock(this)">📋️ Copy</button></div><div class="code-${language}">${code}</div></div><br>`;
                 }
                 blocks.push(
                     newVal
@@ -708,7 +773,7 @@
 
         function home() {
             if (!('/'.includes(window.location.pathname))) {
-                window.location.replace('/');
+                window.location = '/';
             }
         }
 
@@ -750,7 +815,7 @@
                         var parentDiv = copyTemplate('PrevChatBtn');
                         var button = parentDiv.firstElementChild;
                         button.onclick = function() {
-                            window.location.replace('/chat/'+element[0]);
+                            window.location = '/chat/'+element[0];
                         }
                         button.firstElementChild.innerText = element[1];
 
@@ -1040,6 +1105,13 @@
                     <br><br>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="popup" class="overlay">
+        <div class="popup">
+            <a class="close" onclick="document.getElementById('popup').classList.remove('overlay-open')">&times;</a>
+            <div id="popupContent"></div>
         </div>
     </div>
 </body>

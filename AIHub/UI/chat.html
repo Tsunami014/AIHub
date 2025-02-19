@@ -186,10 +186,13 @@
             }
             pfpElm.lastElementChild.innerText = displTxt;
             if (PFPCache[pfp]) {
-                pfpElm.firstElementChild.src = PFPCache[pfp];
+                if (PFPCache[pfp] !== 'null') {
+                    pfpElm.firstElementChild.src = PFPCache[pfp];
+                }
                 return;
             }
-            var resp = await fetch('/proxy/google?q='+encode(`${pfp[pfp.length-1].replace(' ', '+')}+ai+icon+svg+-huggingface`));
+            var resp = await fetch('/proxy/google?q='+encode(`${pfp[pfp.length-1].replace(' ', '+')}+ai+icon+svg+-huggingface`))
+                .finally(()=>{PFPCache[pfp] = 'null'});
             var text = await resp.text();
             const parser = new DOMParser();
             const doc = parser.parseFromString(text, "text/html");
@@ -409,9 +412,16 @@
             }
             interruptScrlWait = true;
             if (!waitingForScrl) {
-                scrlAtBtm = false;
-                const bottomBtn = document.getElementById('goToBottom');
-                bottomBtn.style.display = 'block';
+                const container = document.getElementById('messages');
+                if (container.scrollHeight - container.scrollTop <= container.clientHeight + 1) {
+                    scrlAtBtm = true;
+                    const bottomBtn = document.getElementById('goToBottom');
+                    bottomBtn.style.display = 'none';
+                } else {
+                    scrlAtBtm = false;
+                    const bottomBtn = document.getElementById('goToBottom');
+                    bottomBtn.style.display = 'block';
+                }
             }
             updateHei();
         }
@@ -442,7 +452,7 @@
                         return;
                     }
                 }
-                if (container.scrollTop + container.clientHeight >= container.scrollHeight - 0.5) {
+                if (container.scrollTop + container.clientHeight >= container.scrollHeight - 1) {
                     container.scrollTop = container.scrollHeight;
                     const bottomBtn = document.getElementById('goToBottom');
                     bottomBtn.style.display = 'none';
@@ -539,7 +549,8 @@
             while (true) {
                 var {value, done} = await reader.read();
                 var newTxt = new TextDecoder().decode(value);
-                var json = '{"data": ['+newTxt.slice(0, -1)+']}';
+                var json = `{"data": [${newTxt.slice(0, -1)}]}`;
+                console.log(json);
                 var data = JSON.parse(json).data;
 
                 data.forEach(it => {
