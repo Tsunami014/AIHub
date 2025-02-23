@@ -49,8 +49,8 @@ class OllamaProvider(BaseProvider):
             model = [i for i in ms if i.model == model][0]
         deets = model.details
         time = model.modified_at
-        return f"""{pref}{model.model} is a {deets.format} model{" whose parent is "+deets.parent_model if deets.parent_model else ""} and is in the \
-{deets.family} family.
+        return f"""`{pref}{model.model}` is a `{deets.format}` model{" whose parent is `"+deets.parent_model+"`" if deets.parent_model else ""} and is in the \
+`{deets.family}` family.
 It is {deets.parameter_size}, with a quantization level of {deets.quantization_level} and a size of ~{findUnit(model.size)}.
 It was last modified at {time.day}/{time.month}/{time.year}, at {time.hour}:{time.minute}:{time.second}."""
     

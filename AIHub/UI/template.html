@@ -713,7 +713,7 @@
                 fetch('/api/v1/ai/info/'+encode(PROVIDER))
                     .then(resp => resp.json())
                     .then(data => {
-                        document.getElementById('AIText').innerText = data.data;
+                        formatText(document.getElementById('AIText'), data.data);
                     });
             }
 
@@ -784,8 +784,6 @@
                     loadOpts();
                     UpdateText();
                 });
-            
-            loadOpts();
         }
 
         async function loadOpts() {
