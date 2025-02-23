@@ -52,7 +52,7 @@ class OllamaProvider(BaseProvider):
         return f"""`{pref}{model.model}` is a `{deets.format}` model{" whose parent is `"+deets.parent_model+"`" if deets.parent_model else ""} and is in the \
 `{deets.family}` family.
 It is {deets.parameter_size}, with a quantization level of {deets.quantization_level} and a size of ~{findUnit(model.size)}.
-It was last modified at {time.day}/{time.month}/{time.year}, at {time.hour}:{time.minute}:{time.second}."""
+It was last modified at {time.day}/{time.month}/{time.year}, at {time.hour:02d}:{time.minute:02d}:{time.second:02d}."""
     
     @staticmethod
     def getHierachy():
