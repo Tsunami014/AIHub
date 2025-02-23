@@ -3,15 +3,22 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100%;
+        height: 90%;
+        flex-direction: column;
     }
     #chatContainer {
         transition: all .25s var(--transition);
         width: 60%;
     }
+    #CentreText {
+        font-size: xxx-large;
+        margin-bottom: 130px;
+        margin-top: 0;
+    }
 </style>
 
 <div class="centre">
+    <h1 id="CentreText">Hello! What will<br>you dream of today?</h1>
     <script>
         insertTemplate(document.currentScript.parentElement, 'chatContainer');
         function gotoNext() {

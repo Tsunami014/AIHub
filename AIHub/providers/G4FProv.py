@@ -108,6 +108,44 @@ class G4FProvider(BaseProvider):
             yield format2(resp.choices[0].delta.content, model, True)
     
     @staticmethod
+    def getOpts(model):
+        if 'random' in model:
+            return []
+        if 'best' in model:
+            return []
+        if model[0] == 'ANY':
+            return []
+        model = [stripEmoji(i) for i in model]
+        prov = g4f.Provider.__map__[model[0]]
+        out = []
+        typl = {
+            'float': 'numInp',
+            'int': 'numInp',
+            'bool': 'boolInp',
+        }
+        typtransforml = {
+            'float': float,
+            'int': int,
+            'bool': lambda x: x == 'True',
+        }
+        for op in prov.params.split('\n')[1:-1]:
+            name, oth = op.split(':')
+            oths = oth.split('=')
+            typ, deflt = oths[0], (oths[1] if len(oths) > 1 else '')
+            name, typ, deflt = name.strip(' '), typ.strip(' ,'), deflt.strip(' ,')
+            if name not in ('model', 'messages', 'images', 'tools', 'stream'):
+                if typ in typl:
+                    o = {
+                        'id': name,
+                        'label': name[0].upper()+name[1:].replace('_', ' '),
+                        'type': typl[typ]
+                    }
+                    if deflt not in ('', 'None'):
+                        o['default'] = typtransforml[typ](deflt)
+                    out.append(o)
+        return out
+    
+    @staticmethod
     def getInfo(model):
         model = [stripEmoji(i) for i in model]
         firstBest = False
