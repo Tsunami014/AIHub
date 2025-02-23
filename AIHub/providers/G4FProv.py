@@ -136,7 +136,7 @@ class G4FProvider(BaseProvider):
             for i in resp:
                 if hasattr(prov, 'last_provider'):
                     model[0] = prov.last_provider.__name__
-                else: # TODO: replace window location for switching chats so it appears in history
+                else:
                     model[0] = prov.__name__
                 resp = i.choices[0].delta.content
                 if resp:
@@ -150,12 +150,42 @@ class G4FProvider(BaseProvider):
     def getOpts(model):
         if 'random' in model:
             return []
-        if 'best' in model:
-            return []
-        if model[0] == 'ANY':
+        if model in (['best'], ['ANY', 'best']):
             return []
         model = findProvModel(model)
-        prov = g4f.Provider.__map__[model[0]]
+        prov = None
+        if model[1] == 'best':
+            prov = g4f.Provider.__map__[model[0]]
+            model = [model[0], prov.default_model]
+        if model[0] == 'ANY':
+            provs = g4f.models.__models__[model[1]][1]
+            allps = []
+            defs = {}
+            for p in provs:
+                o = []
+                pars = p.params.split('\n')[1:-1]
+                for i in pars:
+                    nme, xtra = i.split(':')
+                    typ, *d = xtra.split('=')
+                    if d:
+                        df = d[0].strip(' ,')
+                        if nme not in defs:
+                            defs[nme] = df
+                        elif defs[nme] != df:
+                            defs[nme] = 'None'
+                    o.append(nme.strip(' ')+':'+typ.strip(' ,'))
+                allps.append(o)
+            params = []
+            for p in allps[0]:
+                if all(p in j for j in allps[1:]):
+                    nme, _ = p.split(':')
+                    if nme in defs and defs[nme] != 'None':
+                        params.append(p+'='+defs[nme])
+                    else:
+                        params.append(p)
+        else:
+            prov = prov or g4f.Provider.__map__[model[0]]
+            params = prov.params.split('\n')[1:-1]
         out = []
         typl = {
             'float': 'numInp',
@@ -167,7 +197,7 @@ class G4FProvider(BaseProvider):
             'int': int,
             'bool': lambda x: x == 'True',
         }
-        for op in prov.params.split('\n')[1:-1]:
+        for op in params:
             name, oth = op.split(':')
             oths = oth.split('=')
             typ, deflt = oths[0], (oths[1] if len(oths) > 1 else '')
@@ -187,6 +217,16 @@ class G4FProvider(BaseProvider):
     @staticmethod
     def getInfo(model):
         model = findProvModel(model)
+        def props(prov):
+            return f"""
+{" - Label: "+prov.label+'\n' if hasattr(prov, 'label') else ''}\
+{" - Parent: "+prov.parent+'\n' if hasattr(prov, 'parent') else ''}\
+ - {'Does not require' if not prov.needs_auth else '**Requires**'} authentification{" at "+prov.login_url if hasattr(prov, 'login_url') else ''}
+ - {'Supports' if prov.supports_stream else '**Does not support**'} streaming
+ - {'Is' if model[-1] in getattr(prov, "image_models", []) else 'Is **not**'} an image model
+ - {'Is' if model[-1] in getattr(prov, "vision_models", []) else 'Is **not**'} an vision model
+ - located {"at "+prov.url if prov.url is not None else "nowhere..."}
+""".strip('\n')
         firstBest = False
         if model == ['random']:
             return 'You have selected a RANDOM model from GPT4Free!'
@@ -198,20 +238,14 @@ class G4FProvider(BaseProvider):
             elif model[1] == 'best':
                 return 'You have chosen GPT4Free\'s best option; which will try every option available until one works!'
             
-            return f'GPT4Free\'s `{model[1]}` model from `{g4f.models.__models__[model[1]][0].base_provider}` automatically tries every possible provider that provides the model!'
+            return f'GPT4Free\'s `{model[1]}` model from `{g4f.models.__models__[model[1]][0].base_provider}` automatically tries every possible provider that provides the model!\n\
+It is served by {len(g4f.models.__models__[model[1]][1])} providers.\nIt has the following properties:\n'+props(g4f.models.__models__[model[1]][0].best_provider)
         prov = g4f.Provider.__map__[model[0]]
         secBest = model[1] == 'best'
         if secBest:
             model = [model[0], prov.default_model]
         # getattr(provider, "use_nodriver", False) ???
-        return f"""`{model[0]}`'s {"*best* " if secBest else ""}model `{model[-1]}` is {"GPT4Free's *best*" if firstBest else "a GPT4Free"} model, which has the following properties:
-{" - Label: "+prov.label+'\n' if hasattr(prov, 'label') else ''}\
-{" - Parent: "+prov.parent+'\n' if hasattr(prov, 'parent') else ''}\
- - {'Does not require' if not prov.needs_auth else '**Requires**'} authentification{" at "+prov.login_url if hasattr(prov, 'login_url') else ''}
- - {'Supports' if prov.supports_stream else '**Does not support**'} streaming
- - {'Is' if model[-1] in getattr(prov, "image_models", []) else 'Is **not**'} an image model
- - {'Is' if model[-1] in getattr(prov, "vision_models", []) else 'Is **not**'} an vision model
- - located at {prov.url}"""
+        return f'`{model[0]}`\'s {"*best* " if secBest else ""}model `{model[-1]}` is {"GPT4Free's *best*" if firstBest else "a GPT4Free"} model, which has the following properties:\n'+props(prov)
     
     @staticmethod
     def getHierachy():
