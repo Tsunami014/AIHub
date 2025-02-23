@@ -729,8 +729,12 @@
                                 modeSels.removeChild(modeSels.children[befores+1]);
                             }
                             if (!isNaN(this.value) && !isNaN(parseFloat(this.value))) {
-                                const val = branch[this.value]
-                                PROVIDER = prov+val[0]+':';
+                                const val = branch[this.value];
+                                if (val[0].includes('<*sep*>')) {
+                                    PROVIDER = prov+val[0].split('<*sep*>')[1]+':';
+                                } else {
+                                    PROVIDER = prov+val[0]+':';
+                                }
                                 hierachyBranch(val[1], befores+1, PROVIDER);
                                 PROVIDER += 'best';
                             } else {
@@ -754,10 +758,20 @@
                             var option = document.createElement('option');
                             if (Array.isArray(val)) {
                                 option.value = idx;
-                                option.textContent = val[0] + ' ...';
+                                if (val[0].includes('<*sep*>')) {
+                                    option.textContent = val[0].split('<*sep*>')[0] + ' ...';
+                                } else {
+                                    option.textContent = val[0] + ' ...';
+                                }
                             } else {
-                                option.value = val;
-                                option.textContent = val;
+                                if (val.includes('<*sep*>')) {
+                                    let sep = val.split('<*sep*>');
+                                    option.value = sep[1];
+                                    option.textContent = sep[0];
+                                } else {
+                                    option.value = val;
+                                    option.textContent = val;
+                                }
                             }
                             group.appendChild(option);
                         });
@@ -769,7 +783,17 @@
                             if (colIdx !== -1) {
                                 let bef = restoreBranch.slice(0, colIdx);
                                 let aft = restoreBranch.slice(colIdx+1);
-                                let idx = branch.findIndex(val => val[0] === bef);
+                                let idx = branch.findIndex(val => {
+                                    if (!Array.isArray(val)) {
+                                        return false;
+                                    }
+                                    if (val[0].includes('<*sep*>')) {
+                                        return val[0].split('<*sep*>')[1] === bef;
+                                    } else {
+                                        return val[0] === bef;
+                                    }
+                                    
+                                });
                                 select.value = idx;
                                 hierachyBranch(branch[idx][1], befores+1, prov+bef+':', aft);
                             } else {

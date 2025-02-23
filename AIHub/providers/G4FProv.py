@@ -6,9 +6,7 @@ import time
 
 __all__ = ['G4FProvider']
 
-PREFIX_LEN = 2
-
-def timeCache(func, wait=0): # 60*2 = 2 mins
+def timeCache(func, wait=60*2): # 60*2 = 2 mins
     cache = {}
     def func2(*args):
         match = args
@@ -22,64 +20,30 @@ def timeCache(func, wait=0): # 60*2 = 2 mins
     
     return func2
 
-def getMPrefxs(prov, model):
-    img = "💬"
-    if hasattr(prov, 'image_models'):
-        if model in prov.image_models:
-            img = "🖼️"
-    if hasattr(prov, 'vision_models'):
-        if model in prov.vision_models:
-            img += "👀"
-    return img
-
-def getProvModels(prov):
-    try:
-        models = prov.models
-    except AttributeError:
-        try:
-            models = prov.get_models()
-        except AttributeError:
-            models = []
-    aliases = getattr(prov, 'model_aliases', {}).copy()
-    aliases.update(getattr(prov, 'models_aliases', {}))
-    return models + [m for m in aliases.values() if m not in models]
+def getMPrefxs(provs, model):
+    img = ["🖼️", "👀"]
+    for prov in provs:
+        if img[0] == "🖼️" and model not in getattr(prov, 'image_models', []):
+            img[0] = "💬"
+        if "👀" in img and model not in getattr(prov, 'vision_models', []):
+            img.remove("👀")
+    return "".join(img)
 
 @timeCache
-def getModelMap(prov):
+def getProvModels(prov):
     aliases = getattr(prov, 'model_aliases', {}).copy()
     aliases.update(getattr(prov, 'models_aliases', {}))
     aliasesRev = {j: i for i, j in aliases.items()}
-    return {getMPrefxs(prov, i)+' '+(aliasesRev[i] if i in aliasesRev else i): i for i in getProvModels(prov)}
+    models = getattr(prov, 'models', [])
+    models.extend(m for m in getattr(prov, 'get_models', lambda: [])() if m not in models)
+    models.extend(m for m in aliases.values() if m not in models)
+    return [f'{getMPrefxs([prov], i)} {(aliasesRev[i] if i in aliasesRev else i)}<*sep*>{i}' for i in models]
 
-def getProvPrefix(prov):
+def getProvName(prov):
     models = getProvModels(prov)
     name = getattr(prov, 'label', prov.__name__)
     prefix = ('🔒' if prov.needs_auth else '🔐')+("💬" if (not hasattr(prov, "image_models")) or any(i not in prov.image_models for i in models) else "")+("🖼️" if bool(getattr(prov, "image_models", False)) else "")+("👀" if bool(getattr(prov, "vision_models", False)) else "")
     return prefix+' '+name
-
-@timeCache
-def getProvMap():
-    return {getProvPrefix(i): i for i in g4f.Provider.__providers__ if i.working}
-
-
-def convertModel(prov, model):
-    if model in ('best', 'random'):
-        return model
-    prov = g4f.Provider.__map__[prov]
-    return getModelMap(prov)[model]
-
-def convertProvider(prov):
-    if prov in ('best', 'random'):
-        return prov
-    return getProvMap()[prov].__name__
-
-def findProvModel(model):
-    if model[0] in ('random', 'best', 'ANY'):
-        return model
-    if model[1] in ('random', 'best'):
-        return convertProvider(model[0]), model[1]
-    prov = convertProvider(model[0])
-    return prov, convertModel(prov, model[1])
 
 class G4FProvider(BaseProvider):
     NAME = 'GPT4Free Provider'
@@ -88,7 +52,6 @@ class G4FProvider(BaseProvider):
     @staticmethod
     def stream(model, conv, opts):
         out = ''
-        model = findProvModel(model)
 
         if model == ['random']:
             hierachy = G4FProvider.getHierachy()
@@ -131,6 +94,7 @@ class G4FProvider(BaseProvider):
             provider=prov,
             messages=conv,
             # web_search=False,
+            **{i: j for i, j in opts.items() if j is not None}
         )
         if strem:
             for i in resp:
@@ -152,7 +116,6 @@ class G4FProvider(BaseProvider):
             return []
         if model in (['best'], ['ANY', 'best']):
             return []
-        model = findProvModel(model)
         prov = None
         if model[1] == 'best':
             prov = g4f.Provider.__map__[model[0]]
@@ -216,7 +179,6 @@ class G4FProvider(BaseProvider):
     
     @staticmethod
     def getInfo(model):
-        model = findProvModel(model)
         def props(prov):
             return f"""
 {" - Label: "+prov.label+'\n' if hasattr(prov, 'label') else ''}\
@@ -224,7 +186,7 @@ class G4FProvider(BaseProvider):
  - {'Does not require' if not prov.needs_auth else '**Requires**'} authentification{" at "+prov.login_url if hasattr(prov, 'login_url') else ''}
  - {'Supports' if prov.supports_stream else '**Does not support**'} streaming
  - {'Is' if model[-1] in getattr(prov, "image_models", []) else 'Is **not**'} an image model
- - {'Is' if model[-1] in getattr(prov, "vision_models", []) else 'Is **not**'} an vision model
+ - {'Is' if model[-1] in getattr(prov, "vision_models", []) else 'Is **not**'} a vision model
  - located {"at "+prov.url if prov.url is not None else "nowhere..."}
 """.strip('\n')
         firstBest = False
@@ -248,6 +210,7 @@ It is served by {len(g4f.models.__models__[model[1]][1])} providers.\nIt has the
         return f'`{model[0]}`\'s {"*best* " if secBest else ""}model `{model[-1]}` is {"GPT4Free's *best*" if firstBest else "a GPT4Free"} model, which has the following properties:\n'+props(prov)
     
     @staticmethod
+    @timeCache
     def getHierachy():
-        provs = getProvMap()
-        return [['ANY', g4f.models._all_models]]+[i for i in [[name, list(getModelMap(prov).keys())] for name, prov in provs.items()] if i[1]]
+        return [['ANY', [f'{getMPrefxs(ms, name)} {name}<*sep*>{name}' for name, ms in g4f.models.__models__.items()]]] + \
+                [[getProvName(prov)+'<*sep*>'+prov.__name__, getProvModels(prov)] for prov in g4f.Provider.__providers__ if prov.working and getProvModels(prov)]
