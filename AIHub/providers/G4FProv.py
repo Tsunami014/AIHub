@@ -22,10 +22,6 @@ def timeCache(func, wait=0): # 60*2 = 2 mins
     
     return func2
 
-def format2(info, model, done=False):
-    model = findProvModel(model)
-    return format(info, model, done)
-
 def getMPrefxs(prov, model):
     img = "💬"
     if hasattr(prov, 'image_models'):
@@ -117,16 +113,16 @@ class G4FProvider(BaseProvider):
             modelInf = g4f.models.__models__[model[1]][0]
             prov = modelInf.best_provider
             model[0] = 'ANY '+model[1]
-            yield format2('', [model[0], '???'])
+            yield format('', [model[0], '???'])
         else:
             prov = g4f.Provider.__map__[model[0]]
             if model[1] == 'random':
                 model = [model[0], random.choice(getProvModels(prov))]
             if model[1] == 'best':
                 model = [model[0], None]
-                yield format2('', [model[0], '???'])
+                yield format('', [model[0], '???'])
             else:
-                yield format2('', model)
+                yield format('', model)
 
         strem = prov.supports_stream
         resp = Client().chat.completions.create(
@@ -145,10 +141,10 @@ class G4FProvider(BaseProvider):
                 resp = i.choices[0].delta.content
                 if resp:
                     out += resp
-                yield format2(out, model)
-            yield format2(out, model, True)
+                yield format(out, model)
+            yield format(out, model, True)
         else:
-            yield format2(resp.choices[0].delta.content, model, True)
+            yield format(resp.choices[0].delta.content, model, True)
     
     @staticmethod
     def getOpts(model):
