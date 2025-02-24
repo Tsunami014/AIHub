@@ -438,8 +438,9 @@
         function runHTML(elm) {
             const container = document.getElementById('popupContent');
             const shadow = container.attachShadow({ mode: 'closed' });
-            console.log(elm.parentElement.parentElement.lastElementChild.innerText)
-            shadow.innerHTML = elm.parentElement.parentElement.lastElementChild.innerText.replaceAll(/\s(?<![\n\t\r\f\v ])/g, ' ');
+            const html = document.createElement('html');
+            html.innerHTML = elm.parentElement.parentElement.lastElementChild.innerText.replaceAll(/\s(?<![\n\t\r\f\v ])/g, ' ');
+            shadow.appendChild(html);
             document.getElementById('popup').classList.add('overlay-open');
         }
         function formatText(elm, str) {
