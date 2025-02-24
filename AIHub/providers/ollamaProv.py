@@ -41,7 +41,7 @@ class OllamaProvider(BaseProvider):
         ms = ollama.list().models
         if model == ['best']:
             model = sorted(ms, key=lambda x: x.size)[-1]
-            pref = f'Ollama\'s BEST model will be the one requiring the highest computational value: {model.model}.\n'
+            pref = f'Ollama\'s BEST model will be the one requiring the highest computational value: `{model.model}`.\n'
         elif model == ['random']:
             return 'Ollama\'s random model will randomly choose a model!'
         else:
@@ -49,7 +49,7 @@ class OllamaProvider(BaseProvider):
             model = [i for i in ms if i.model == model][0]
         deets = model.details
         time = model.modified_at
-        return f"""`{pref}{model.model}` is a `{deets.format}` model{" whose parent is `"+deets.parent_model+"`" if deets.parent_model else ""} and is in the \
+        return f"""{pref}`{model.model}` is a `{deets.format}` model{" whose parent is `"+deets.parent_model+"`" if deets.parent_model else ""} and is in the \
 `{deets.family}` family.
 It is {deets.parameter_size}, with a quantization level of {deets.quantization_level} and a size of ~{findUnit(model.size)}.
 It was last modified at {time.day}/{time.month}/{time.year}, at {time.hour:02d}:{time.minute:02d}:{time.second:02d}."""
@@ -57,12 +57,4 @@ It was last modified at {time.day}/{time.month}/{time.year}, at {time.hour:02d}:
     @staticmethod
     def getHierachy():
         ms = ollama.list().models
-        return [i.model.replace(':', ';') for i in ms]
-        # outs = {}
-        # for i in ms:
-        #     spl = i.model.split(':')
-        #     if spl[0] in outs:
-        #         outs[spl[0]].append(spl[1])
-        #     else:
-        #         outs[spl[0]] = [spl[1]]
-        # return [[i, j] for i, j in outs.items()]
+        return [f'{i.model}<*sep*>{i.model.replace(':', ';')}' for i in ms]
