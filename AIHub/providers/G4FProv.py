@@ -33,14 +33,21 @@ def getMPrefxs(provs, model):
 def getProvModels(prov):
     aliases = getattr(prov, 'model_aliases', {}).copy()
     aliases.update(getattr(prov, 'models_aliases', {}))
+    try:
+        models = prov.get_models()
+    except Exception:
+        models = getattr(prov, 'models', [])
+    models += aliases.values()
+    return list({i: None for i in models}.keys()), aliases
+
+@timeCache
+def getDecorProvModels(prov):
+    models, aliases = getProvModels(prov)
     aliasesRev = {j: i for i, j in aliases.items()}
-    models = getattr(prov, 'models', [])
-    models.extend(m for m in getattr(prov, 'get_models', lambda: [])() if m not in models)
-    models.extend(m for m in aliases.values() if m not in models)
     return [f'{getMPrefxs([prov], i)} {(aliasesRev[i] if i in aliasesRev else i)}<*sep*>{i}' for i in models]
 
 def getProvName(prov):
-    models = getProvModels(prov)
+    models, _ = getProvModels(prov)
     name = getattr(prov, 'label', prov.__name__)
     prefix = ('🔒' if prov.needs_auth else '🔐')+("💬" if (not hasattr(prov, "image_models")) or any(i not in prov.image_models for i in models) else "")+("🖼️" if bool(getattr(prov, "image_models", False)) else "")+("👀" if bool(getattr(prov, "vision_models", False)) else "")
     return prefix+' '+name
@@ -80,7 +87,7 @@ class G4FProvider(BaseProvider):
         else:
             prov = g4f.Provider.__map__[model[0]]
             if model[1] == 'random':
-                model = [model[0], random.choice(getProvModels(prov))]
+                model = [model[0], random.choice(getProvModels(prov)[0])]
             if model[1] == 'best':
                 model = [model[0], None]
                 yield format('', [model[0], '???'])
@@ -212,5 +219,5 @@ It is served by {len(g4f.models.__models__[model[1]][1])} providers.\nIt has the
     @staticmethod
     @timeCache
     def getHierachy():
-        return [['ANY', [f'{getMPrefxs(ms, name)} {name}<*sep*>{name}' for name, ms in g4f.models.__models__.items()]]] + \
-                [[getProvName(prov)+'<*sep*>'+prov.__name__, getProvModels(prov)] for prov in g4f.Provider.__providers__ if prov.working and getProvModels(prov)]
+        return [['ANY', [f'{getMPrefxs(ms[1], name)} {name}<*sep*>{name}' for name, ms in g4f.models.__models__.items()]]] + \
+                [[getProvName(prov)+'<*sep*>'+prov.__name__, getDecorProvModels(prov)] for prov in g4f.Provider.__providers__ if prov.working and getDecorProvModels(prov)]
