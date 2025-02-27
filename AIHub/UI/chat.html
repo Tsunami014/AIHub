@@ -48,6 +48,37 @@
         transform: scaleX(1);
     }
 
+    .in:has(div[contenteditable=true]) {
+        border-radius: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: end;
+    }
+    .in:has(div[contenteditable=true]):focus {
+        box-shadow: 0 0 0 3px rgba(var(--accent-2-strong-rgb), 0.8);
+    }
+    .in > div[contenteditable=true] {
+        box-shadow: 0 0 0 2px rgba(var(--accent-2-strong-rgb), 0.5);
+        border-radius: 10px;
+        background-color: whitesmoke;
+        margin: 10px;
+        padding: 5px;
+        display: flex;
+        flex-direction: column;
+    }
+    .in > div[contenteditable=true] + div {
+        margin-right: 5px;
+    }
+    .msgEditBtn {
+        background-color: rgba(var(--hov-rgb), 0.12);
+    }
+    .msgEditBtn:hover {
+        background-color: rgba(var(--active-rgb), 0.25);
+    }
+    .msgEditBtn:active {
+        background-color: rgba(var(--accent-1-dark-rgb), 0.45);
+    }
+
     .pfpParent {
         position: relative;
         height: fit-content;
@@ -134,7 +165,7 @@
         </div>
     </div>
     <div id="MychatButtons" class="buttons myButtons">
-        <div class="chatBtn" role="button" tabindex="0">
+        <div class="chatBtn" onclick="editElm(this)" role="button" tabindex="0">
             <svg width="18" height="18">
                 <use href="#editText" />
             </svg>
@@ -564,6 +595,26 @@
                 return;
             }
             CONV = json.data.messages;
+        }
+
+        async function editElm(elm) {
+            const msg = elm.parentElement.parentElement.parentElement
+            const msgs = document.getElementById('messageBubbles');
+            const idx = Array.prototype.indexOf.call(msgs.children, msg);
+            const msgtxt = elm.parentElement.parentElement.firstElementChild;
+            const newDiv = document.createElement('div');
+            newDiv.innerText = CONV[idx-1].content;
+            newDiv.contentEditable = "true";
+            msgtxt.innerHTML = '';
+            msgtxt.appendChild(newDiv);
+            const btnsDiv = document.createElement('div');
+            ['hi', 'bye'].forEach(val => {
+                let newBtn = document.createElement('button');
+                newBtn.innerText = val;
+                newBtn.classList.add('msgEditBtn')
+                btnsDiv.appendChild(newBtn);
+            })
+            msgtxt.appendChild(btnsDiv);
         }
 
         async function onChatGo() {
