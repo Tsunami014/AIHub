@@ -303,17 +303,22 @@
             border-radius: 5px;
             border: solid 2px rgba(125, 125, 125, 0.8);
             padding-top: 5px;
+            position: relative;
         }
         .code-block .codetop {
-            width: calc(100% + 15px);
+            width: calc(100% - 30px);
             display: flex;
             align-items: center;
-            margin-bottom: 5px;
+            position: absolute;
         }
         .code-block .codelang {
             width: inherit;
             pointer-events: none;
             font-size: small;
+        }
+        .code-block-txt {
+            margin-top: 35px;
+            overflow-x: auto;
         }
         .code-block button {
             margin-top: 0;
@@ -533,7 +538,7 @@
                         }
                     }
 
-                    newVal = `<div class="code-block"><div class="codetop"><span class="codelang">${language}</span>${btn}<button onclick="copyCodeBlock(this)">📋️ Copy</button></div><div class="code-${language}">${code}</div></div><br>`;
+                    newVal = `<div class="code-block"><div class="codetop"><span class="codelang">${language}</span>${btn}<button onclick="copyCodeBlock(this)">📋️ Copy</button></div><div class="code-${language} code-block-txt">${code}</div></div><br>`;
                 }
                 blocks.push(
                     newVal
