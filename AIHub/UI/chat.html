@@ -92,6 +92,7 @@
 
     #goToBottom {
         height: fit-content;
+        pointer-events: initial;
     }
     #goToBottomContainer {
         position: absolute;
@@ -100,6 +101,7 @@
         width: 100%;
         justify-content: center;
         display: flex;
+        pointer-events: none;
     }
 </style>
 
@@ -380,41 +382,18 @@
             requestAnimationFrame(checkIfAtBottom);
         }
 
-        async function stopAI() {
-            var resp;
-            try {
-                resp = await fetch('/api/v1/ai/stop', {method: 'POST'});
-            } catch (e) {
-                return;
-            }
-            json = await resp.json();
-            enableInp();
-        }
-
-        function disableInp() {
-            const GOBtn = document.getElementById('chatGoBtn');
-            GOBtn.firstElementChild.firstElementChild.setAttribute('href', '#stop');
-            GOBtn.onclick = stopAI;
-            const cont = document.getElementById('chatIn');
-            cont.disabled = true;
-        }
-        function enableInp() {
-            const GOBtn = document.getElementById('chatGoBtn');
-            GOBtn.firstElementChild.firstElementChild.setAttribute('href', '#go');
-            GOBtn.onclick = onChatGo;
-            const cont = document.getElementById('chatIn');
-            cont.disabled = false;
-        }
-
-        async function runAI() {
-            await stopAI();
+        async function initAI() {
             disableInp();
-            var msg = await addMessage('bot', '');
+            var msg = makeMessage('bot', '');
             var inn = msg.lastElementChild.firstElementChild;
             insertTemplate(inn, 'spinner');
             scrollMsgs(true);
-            var usingSpin = true;
-
+            return msg;
+        }
+        async function startAI() {
+            await stopAI();
+            var msg = await initAI();
+            const ID = this.location.pathname.split('/')[2];
             var opts = {};
             document.getElementById('PromptSetts').childNodes.forEach(it => {
                 var id = it.id;
@@ -449,73 +428,126 @@
                 }
                 opts[id] = val;
             });
-            const response = await fetch('/api/v1/ai/run/'+encode(PROVIDER), {
+            const response = await fetch('/api/v1/ai/start/'+ID, {
                 method: 'POST',
+                cache: "no-cache",
+                headers: {
+                    'Content-Type': "application/json"
+                },
+                body: JSON.stringify({
+                    'conv': CONV, 
+                    'modelStr': PROVIDER,
+                    'opts': opts
+                })
+            });
+            streamAI(msg);
+        }
+
+        var lastMsg = "";
+        var lastpfp = "";
+        async function streamAI(msg = null) {
+            if (!msg) {
+                msg = await initAI();
+            }
+            const ID = this.location.pathname.split('/')[2];
+            var pfpElm = msg.firstElementChild;
+            var inn = msg.lastElementChild.firstElementChild;
+            const response = await fetch('/api/v1/ai/stream/'+ID, {
                 cache: "no-cache",
                 keepalive: true,
                 headers: {
                     'Accept': "text/event-stream",
                     'Content-Type': "application/json"
-                },
-                body: JSON.stringify({'conv': CONV.slice(0, -1), 'opts': opts})
-            })
+                }
+            });
             const reader = response.body.getReader();
+
+            var usingSpin = true;
 
             while (true) {
                 var {value, done} = await reader.read();
                 var newTxt = new TextDecoder().decode(value);
                 var json = `{"data": [${newTxt.slice(0, -1)}]}`;
-                console.log(json);
                 var data = JSON.parse(json).data;
 
-                data.forEach(it => {
-                    if (it.data === '') {
-                        updateLastMessage('', it.model);
-                    }
-                    if (it.done === true) {
-                        if (usingSpin) {
-                            unuseTemplate('spinner');
-                        }
-                        getPfp(msg.firstElementChild, it.model);
-                        formatText(inn.firstElementChild, it.data);
+                var done = false;
 
-                        updateLastMessage(it.data, it.model);
-                        scrollMsgs();
-                        done = true;
-                        enableInp();
+                data.forEach(it => {
+                    if (done) {
                         return;
                     }
-
-                    if (usingSpin && it.data !== '') {
+                    if (usingSpin && (it.data !== '' || it.done)) {
                         usingSpin = false;
                         unuseTemplate('spinner');
                     }
+                    getPfp(pfpElm, it.model);
                     formatText(inn.firstElementChild, it.data);
-                    updateLastMessage(it.data, it.model);
+                    lastMsg = it.data;
+                    lastpfp = it.model;
+                    if (it.done) {
+                        done = true;
+                        return;
+                    }
                     if (scrlAtBtm) {
                         scrollMsgs();
                     }
                 });
                 if (done) {
-                    enableInp();
+                    await stopAI();
                     return;
-                };
+                }
             }
+        }
+
+        async function stopAI(addLast = true) {
+            const ID = window.location.pathname.split('/')[2];
+            var fail = false;
+            var resp = await fetch('/api/v1/ai/stop/'+ID, {
+                method: 'POST',
+                cache: "no-cache",
+            }).then((response) => {
+                if (!response.ok) {
+                    fail = true;
+                }
+            });
+            if (fail) {
+                return;
+            }
+            if (addLast) {
+                CONV.push({role: 'bot', content: lastMsg});
+            }
+            await updateLastMessage(lastMsg, lastpfp);
+            enableInp();
+        }
+
+        function disableInp() {
+            const GOBtn = document.getElementById('chatGoBtn');
+            GOBtn.firstElementChild.firstElementChild.setAttribute('href', '#stop');
+            GOBtn.onclick = stopAI;
+            const cont = document.getElementById('chatIn');
+            cont.disabled = true;
+        }
+        function enableInp() {
+            const GOBtn = document.getElementById('chatGoBtn');
+            GOBtn.firstElementChild.firstElementChild.setAttribute('href', '#go');
+            GOBtn.onclick = onChatGo;
+            const cont = document.getElementById('chatIn');
+            cont.disabled = false;
         }
 
         async function redo(elm) {
             // if (!confirm('You sure you want to redo?')) {
             //     return;
             // }
-            disableInp();
             await delElm(elm, false);
-            await runAI();
+            await startAI();
         }
 
         async function delElm(elm, ask = true) {
             if (ask && !confirm('Are you sure you want to delete this message AND ALL AFTER IT?')) {
                 return;
             }
+            await stopAI(false);
             const msgs = document.getElementById('messageBubbles');
             for (var i = CONV.length - 1; i >= 0; i--) {
                 if (msgs.lastElementChild === elm.parentElement.parentElement.parentElement) {
@@ -579,15 +611,16 @@
             }
             setChatTxt("");
             scrollMsgs();
-            await runAI();
+            await startAI();
         }
 
         async function loadData() {
             const ID = this.location.pathname.split('/')[2];
 
+            var data;
             if (ID) {
                 var resp = await fetch('/api/v1/chat/'+ID);
-                var data = await resp.json();
+                data = await resp.json();
                 if (data.status === 'error') {
                     console.error(data);
                     alert(data.message);
@@ -601,12 +634,13 @@
                 return;
             }
             CONV = data.data.messages;
-            if (CONV.length < 2) { // First message; came straight from init //FIXME
-                CONV.forEach(element => {
-                    makeMessage(element.role, element.content, pfp=element.pfp);
-                });
-                scrollMsgs(true);
-                runAI();
+            console.log(data)
+            if (false){//(CONV.length < 2) { // First message; came straight from init //FIXME
+                // CONV.forEach(element => {
+                //     makeMessage(element.role, element.content, pfp=element.pfp);
+                // });
+                // scrollMsgs(true);
+                // runAI();
             } else {
                 CONV.forEach(element => {
                     makeMessage(element.role, element.content, false, element.pfp);
@@ -614,6 +648,15 @@
                 const scrollable = document.getElementById('messages');
                 scrollable.scrollTop = scrollable.scrollHeight;
                 waitForScrollEnd(scrollable);
+            }
+            if (data.running) {
+                disableInp();
+                var msg = document.getElementById('messageBubbles').lastElementChild;
+                if (!data.data.messages[data.data.messages.length-1].content) {
+                    var inn = msg.lastElementChild.firstElementChild;
+                    insertTemplate(inn, 'spinner');
+                }
+                streamAI(msg);
             }
         }
 

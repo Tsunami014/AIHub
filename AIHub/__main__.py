@@ -60,7 +60,7 @@ def google_proxy():
     url = f"https://www.google.com/search?q={q}&udm=2"
     try:
         resp = requests.get(url)
-    except:
+    except Exception:
         return flask.jsonify({"status": "error", "message": "Cannot reach google servers!"}), 400
     return flask.Response(resp.text, status=resp.status_code, content_type='text/html')
 
@@ -74,51 +74,87 @@ def splitModel(model):
     provs = {str(i): i for i in allprovs}
     return provs[spl[0]], spl[1:]
 
-Q = None
-PRO = None
+PROS = {}
 
-@app.route('/api/v1/ai/run/<modelStr>', methods=["POST"])
-def aiRun(modelStr):
-    global Q, PRO
+class AIProc:
+    def __init__(self, target, id, conv):
+        if id in PROS:
+            PROS[id].kill()
+        self.id = id
+        self.Q = Queue()
+        self.conv = conv
+        self.pro = Process(target=target, args=(self._handleIt,), daemon=True)
+        self.pro.start()
+        PROS[id] = self
+    
+    def __del__(self):
+        if self.id in PROS:
+            PROS.pop(self.id)
+    
+    def _handleIt(self, it):
+        if it is not None:
+            jsn = json.loads(f'[{it.rstrip(',')}]')
+            DB.execute('UPDATE chats SET conv = ? WHERE id = ?', json.dumps({'messages': self.conv+[{'content': jsn[-1]['data'], 'role': 'bot', 'pfp': jsn[-1]['model']}]}), self.id)
+            DB.save()
+        else:
+            self.__del__()
+        self.Q.put(it)
+    
+    def streamF(self):
+        while True:
+            out = self.Q.get()
+            if out is None:
+                return
+            yield out
+    
+    def kill(self):
+        self.pro.kill()
+        self.Q.put(None)
+        # self.pro.join()
+        self.__del__()
+    
+    def __bool__(self):
+        return self.pro.is_alive()
+
+@app.route('/api/v1/ai/start/<id>', methods=["POST"])
+def aiRun(id):
+    try:
+        data = flask.request.json
+        modelStr = data['modelStr']
+        conv = data['conv']
+        assert 'opts' in data
+    except (BadRequest, KeyError, AssertionError):
+        return flask.jsonify({"status": "error", "message": "Invalid request data!"}), 400
     prov, model = splitModel(modelStr)
 
-    Q = Queue()
-
-    def runModel():
+    def runModel(Q):
         out = ''
         try:
-            data = flask.request.json
             for i in prov.stream(model, [{j: i[j] for j in i if j in ('role', 'content')} for i in data['conv']], data['opts']):
                 out = i
-                Q.put(i)
+                Q(i)
         except Exception as e:
             if out == '':
                 outmod = model
             else:
                 outmod = json.loads(out[:-1])['model']
-            Q.put(out+format(f'Sorry, but an error has occured: {e}', outmod, True))
-        Q.put(None)
+            Q(out+format(f'Sorry, but an error has occured: {e}', outmod, True))
+        Q(None)
     
-    PRO = Process(target=runModel)
-    PRO.start()
-    
-    def stream():
-        global Q
-        while True:
-            out = Q.get()
-            if out is None:
-                return
-            yield out
+    AIProc(runModel, id, conv)
+    return flask.jsonify({"status": "OK"}), 200
 
-    return flask.Response(stream(), mimetype='text/event-stream')
+@app.route('/api/v1/ai/stream/<id>')
+def aistream(id):
+    if id not in PROS:
+        return flask.jsonify({"status": "error", "message": "Stream ID does not exist or has been stopped!"}), 404
+    return flask.Response(PROS[id].streamF(), mimetype='text/event-stream')
 
-@app.route('/api/v1/ai/stop', methods=["POST"])
-def aiStop():
-    global Q, PRO
-    if PRO is None or Q is None:
-        return flask.jsonify({"status": "error", "message": "AI process not running!"}), 400
-    PRO.kill()
-    Q.put(None)
+@app.route('/api/v1/ai/stop/<id>', methods=["POST"])
+def aiStop(id):
+    if id not in PROS:
+        return flask.jsonify({"status": "error", "message": "Stream ID does not exist or has already been stopped!"}), 404
+    PROS[id].kill()
     return flask.jsonify({"status": "success", "message": "AI process stopped."}), 200
 
 @app.route('/api/v1/ai/get')
@@ -172,9 +208,9 @@ def handle_request(id, method=None):
     if meth == 'GET': # Get the chat
         chat = DB.execute('SELECT * FROM chats WHERE id = ?', id, returns=True)
         if chat:
-            return flask.jsonify({"status": "OK", "id": id, "data": json.loads(chat[0][2])}), 200
+            return flask.jsonify({"status": "OK", "id": id, "data": json.loads(chat[0][2]), "running": id in PROS}), 200
         else:
-            return flask.jsonify({"status": "error", "id": id, "message": "Chat not found"}), 404
+            return flask.jsonify({"status": "error", "id": id, "message": "Chat not found", "running": id in PROS}), 404
     elif meth == 'POST': # Create a new chat
         try:
             data = flask.request.json

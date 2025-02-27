@@ -3,10 +3,11 @@ from g4f.client import Client
 from AIHub.providers.base import BaseProvider, format
 import random
 import time
+import asyncio
 
 __all__ = ['G4FProvider']
 
-def timeCache(func, wait=60*2): # 60*2 = 2 mins
+def timeCache(func, wait=60*5): # 60*5 = 5 mins
     cache = {}
     def func2(*args):
         match = args
@@ -56,8 +57,8 @@ class G4FProvider(BaseProvider):
     NAME = 'GPT4Free Provider'
     REPR = '<G4FProvider>'
 
-    @staticmethod
-    def stream(model, conv, opts):
+    @classmethod
+    def stream(cls, model, conv, opts):
         out = ''
 
         if model == ['random']:
@@ -117,8 +118,8 @@ class G4FProvider(BaseProvider):
         else:
             yield format(resp.choices[0].delta.content, model, True)
     
-    @staticmethod
-    def getOpts(model):
+    @classmethod
+    def getOpts(cls, model):
         if 'random' in model:
             return []
         if model in (['best'], ['ANY', 'best']):
@@ -184,8 +185,8 @@ class G4FProvider(BaseProvider):
                     out.append(o)
         return out
     
-    @staticmethod
-    def getInfo(model):
+    @classmethod
+    def getInfo(cls, model):
         def props(prov):
             return f"""
 {" - Label: "+prov.label+'\n' if hasattr(prov, 'label') else ''}\
@@ -195,7 +196,7 @@ class G4FProvider(BaseProvider):
  - {'Is' if model[-1] in getattr(prov, "image_models", []) else 'Is **not**'} an image model
  - {'Is' if model[-1] in getattr(prov, "vision_models", []) else 'Is **not**'} a vision model
  - located {"at "+prov.url if prov.url is not None else "nowhere..."}
-""".strip('\n')
+"""[:-1]
         firstBest = False
         if model == ['random']:
             return 'You have selected a RANDOM model from GPT4Free!'
@@ -208,16 +209,42 @@ class G4FProvider(BaseProvider):
                 return 'You have chosen GPT4Free\'s best option; which will try every option available until one works!'
             
             return f'GPT4Free\'s `{model[1]}` model from `{g4f.models.__models__[model[1]][0].base_provider}` automatically tries every possible provider that provides the model!\n\
-It is served by {len(g4f.models.__models__[model[1]][1])} providers.\nIt has the following properties:\n'+props(g4f.models.__models__[model[1]][0].best_provider)
+It is served by {len(g4f.models.__models__[model[1]][1])} providers.\nIt has the following properties:'+props(g4f.models.__models__[model[1]][0].best_provider)
         prov = g4f.Provider.__map__[model[0]]
         secBest = model[1] == 'best'
         if secBest:
             model = [model[0], prov.default_model]
         # getattr(provider, "use_nodriver", False) ???
-        return f'`{model[0]}`\'s {"*best* " if secBest else ""}model `{model[-1]}` is {"GPT4Free's *best*" if firstBest else "a GPT4Free"} model, which has the following properties:\n'+props(prov)
+        return f'`{model[0]}`\'s {"*best* " if secBest else ""}model `{model[-1]}` is {"GPT4Free's *best*" if firstBest else "a GPT4Free"} model, which has the following properties:'+props(prov)
     
-    @staticmethod
+    @classmethod
+    async def _getHierachy(cls):
+        model_tasks = [
+            asyncio.to_thread(getMPrefxs, ms[1], name)
+            for name, ms in g4f.models.__models__.items()
+        ]
+        model_prefixes = await asyncio.gather(*model_tasks)
+        
+        models_part = []
+        for (name, ms), prefix in zip(g4f.models.__models__.items(), model_prefixes):
+            models_part.append(f'{prefix} {name}<*sep*>{name}')
+        
+        models_list = [['ANY', models_part]]
+        
+        # Process provider tasks concurrently
+        valid_providers = [prov for prov in g4f.Provider.__providers__ if prov.working]
+        decor_tasks = [asyncio.to_thread(getDecorProvModels, prov) for prov in valid_providers]
+        decor_results = await asyncio.gather(*decor_tasks)
+        
+        provider_results = []
+        for prov, decor_models in zip(valid_providers, decor_results):
+            if decor_models:
+                prov_name = await asyncio.to_thread(getProvName, prov)
+                provider_results.append([f'{prov_name}<*sep*>{prov.__name__}', decor_models])
+        
+        return models_list + provider_results
+
+    @classmethod
     @timeCache
-    def getHierachy():
-        return [['ANY', [f'{getMPrefxs(ms[1], name)} {name}<*sep*>{name}' for name, ms in g4f.models.__models__.items()]]] + \
-                [[getProvName(prov)+'<*sep*>'+prov.__name__, getDecorProvModels(prov)] for prov in g4f.Provider.__providers__ if prov.working and getDecorProvModels(prov)]
+    def getHierachy(cls):
+        return asyncio.run(cls._getHierachy())
