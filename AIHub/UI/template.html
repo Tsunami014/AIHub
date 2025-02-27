@@ -511,8 +511,8 @@
                         .replaceAll(/>\n+/gm, '>')
                         .replaceAll('\n</div>', '</div>')
 
-                        .replaceAll(/[*_]{2}((?=[^*_]).+(?<=[^*_]))[*_]{2}/g,'<b>$1</b>')
-                        .replaceAll(/[*_]((?=[^*_]).+(?<=[^*_]))[*_]/g, '<i>$1</i>')
+                        .replaceAll(/[*_]{2}((?=[^*_])[^\n<]+(?<=[^*_]))[*_]{2}/g,'<b>$1</b>')
+                        .replaceAll(/[*_]((?=[^*_])(?:[^\n<]|(?:<\/?b>))+(?<=[^*_]))[*_]/g, '<i>$1</i>')
                 } else {
                     const newlineIndex = val.indexOf('\n');
                     let language = '';

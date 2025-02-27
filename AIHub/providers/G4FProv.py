@@ -191,7 +191,7 @@ class G4FProvider(BaseProvider):
             return f"""
 {" - Label: "+prov.label+'\n' if hasattr(prov, 'label') else ''}\
 {" - Parent: "+prov.parent+'\n' if hasattr(prov, 'parent') else ''}\
- - {'Does not require' if not prov.needs_auth else '**Requires**'} authentification{" at "+prov.login_url if hasattr(prov, 'login_url') else ''}
+ - {'Does not require' if not prov.needs_auth else '**Requires**'} authentification{" at "+prov.login_url if getattr(prov, 'login_url', None) is not None else ''}
  - {'Supports' if prov.supports_stream else '**Does not support**'} streaming
  - {'Is' if model[-1] in getattr(prov, "image_models", []) else 'Is **not**'} an image model
  - {'Is' if model[-1] in getattr(prov, "vision_models", []) else 'Is **not**'} a vision model
