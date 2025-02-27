@@ -546,6 +546,43 @@
 
             elm.innerHTML = blocks.join('');
         }
+        function getOpts() {
+            var opts = {};
+            document.getElementById('PromptSetts').childNodes.forEach(it => {
+                var id = it.id;
+                if (!id) {
+                    if (it.classList.contains('inpParent')) {
+                        it = it.lastElementChild;
+                        id = it.id;
+                    }
+                    if (!id) {
+                        return;
+                    }
+                }
+                var val;
+                switch (it.getAttribute('type')) {
+                    case 'checkbox':
+                        val = it.value === 'on';
+                        break;
+                    case 'number':
+                        val = parseFloat(it.value);
+                        break;
+                    case 'choice':
+                        var txt = null;
+                        it.childNodes.forEach(node=>{
+                            if (node.value === it.value) {
+                                txt = node.innerText;
+                            }
+                        });
+                        val = [parseInt(it.value), txt];
+                        break;
+                    default:
+                        return;
+                }
+                opts[id] = val;
+            });
+            return opts;
+        }
         function init() {
             const Chat = document.getElementById("chatIn");
             Chat.addEventListener("paste", function(e) {
@@ -875,6 +912,16 @@
                         console.error(`Unknown type ${it.type}`)
                 }
             });
+        }
+
+        function closePopup() {
+            document.getElementById('popup').classList.remove('overlay-open');
+            var popupC = document.getElementById('popupContent');
+            var parent = popupC.parentElement;
+            parent.removeChild(popupC);
+            var newdiv = document.createElement('div');
+            newdiv.id = 'popupContent';
+            parent.appendChild(newdiv);
         }
 
         function home() {
@@ -1216,7 +1263,7 @@
 
     <div id="popup" class="overlay">
         <div class="popup">
-            <a class="close" onclick="document.getElementById('popup').classList.remove('overlay-open')">&times;</a>
+            <a class="close" onclick="closePopup()">&times;</a>
             <div id="popupContent"></div>
         </div>
     </div>
