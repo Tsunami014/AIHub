@@ -224,19 +224,16 @@
                 }
                 return;
             }
-            var resp = await fetch('/proxy/google?q='+encode(`${pfp[pfp.length-1].replace(' ', '+')}+ai+icon+svg+-huggingface`))
+            var resp = await fetch('/api/v1/ai/pfp/'+encode(pfp.join(' ')))
                 .finally(()=>{PFPCache[pfp] = 'null'});
-            var text = await resp.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(text, "text/html");
-
-            const links = doc.querySelectorAll('img');
-            if (links.length > 0) {
-                var url = links[1].src;
-                pfpElm.firstElementChild.src = url;
-                PFPCache[pfp] = url;
+            json = await resp.json();
+            if (json.status === 'error') {
+                console.error(json);
+                alert(json.message);
                 return;
             }
+            pfpElm.firstElementChild.src = json.url;
+            PFPCache[pfp] = json.url;
         }
 
         function makeMessage(role, content, animate = true, pfp = '') {

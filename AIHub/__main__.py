@@ -4,6 +4,8 @@ from AIHub.providers.base import format
 from werkzeug.exceptions import BadRequest
 from multiprocessing import Process, Queue
 from threading import Lock
+import re
+import time
 import json
 import random
 import requests
@@ -52,17 +54,28 @@ app = flask.Flask(__name__)
 def index():
     return apply('init.html')
 
-@app.route('/proxy/google')
-def google_proxy():
-    q = flask.request.args.get('q')
-    if not q:
-        return flask.Response("Query parameter is missing.", status=400)
-    url = f"https://www.google.com/search?q={q}&udm=2"
+PFPCache = {}
+@app.route('/api/v1/ai/pfp/<model>')
+def getPFP(model):
+    if model in PFPCache:
+        while PFPCache[model] is None:
+            pass
+        if PFPCache[model][0] + 60*5 < time.time():
+            PFPCache.pop(model)
+            return getPFP(model)
+        return flask.jsonify({'status': 'OK', 'url': PFPCache[model][1]}), 200
+    PFPCache[model] = None
+    url = f"https://www.google.com/search?q={model.replace(' ', '+')}+AI+icon+-huggingface&udm=2&tbs=isz:i"
     try:
         resp = requests.get(url)
-    except Exception:
-        return flask.jsonify({"status": "error", "message": "Cannot reach google servers!"}), 400
-    return flask.Response(resp.text, status=resp.status_code, content_type='text/html')
+        resp.raise_for_status()
+    except Exception as e:
+        PFPCache[model] = (time.time(), None)
+        return flask.jsonify({"status": "error", "message": str(e), "url": ""}), 400
+    allImgs = re.findall('<img class="[^"]+" alt="" src="([^>]+)"/>', resp.text)
+    img = allImgs[0]
+    PFPCache[model] = (time.time(), img)
+    return flask.jsonify({'status': 'OK', 'url': img}), 200
 
 def splitModel(model):
     spl = model.replace('\\', '/').split(':')
