@@ -174,6 +174,12 @@
         </div>
     </div>
     <div id="MychatButtons" class="buttons myButtons">
+        <div class="chatBtn" onclick="redo(this, 1)" role="button" tabindex="0">
+            <svg width="18" height="18">
+                <use href="#redo" />
+            </svg>
+            <div class="tooltip"><b>Redo</b></div>
+        </div>
         <div class="chatBtn" onclick="editElm(this)" role="button" tabindex="0">
             <svg width="18" height="18">
                 <use href="#editText" />
@@ -541,15 +547,15 @@
             cont.disabled = false;
         }
 
-        async function redo(elm) {
+        async function redo(elm, modif = 0) {
             // if (!confirm('You sure you want to redo?')) {
             //     return;
             // }
-            await delElm(elm, false);
+            await delElm(elm, false, modif);
             await startAI();
         }
 
-        async function delElm(elm, ask = true) {
+        async function delElm(elm, ask = false, modif = 0) {
             if (ask && !confirm('Are you sure you want to delete this message AND ALL AFTER IT?')) {
                 return;
             }
@@ -557,7 +563,9 @@
             const msgs = document.getElementById('messageBubbles');
             for (var i = CONV.length - 1; i >= 0; i--) {
                 if (msgs.lastElementChild === elm.parentElement.parentElement.parentElement) {
-                    msgs.removeChild(msgs.lastElementChild);
+                    if (modif == 0) {
+                        msgs.removeChild(msgs.lastElementChild);
+                    }
 
                     const ID = this.location.pathname.split('/')[2];
                     resp = await fetch('/api/v1/chat/'+ID, {
@@ -566,7 +574,7 @@
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            'conv': CONV.slice(0, i)
+                            'conv': CONV.slice(0, i+modif)
                         })
                     });
                     json = await resp.json();
@@ -606,7 +614,14 @@
             CONV = json.data.messages;
         }
 
+        function endEdit(elm, idx) {
+            elm.innerHTML = '';
+            const newSpan = document.createElement('span');
+            formatText(newSpan, CONV[idx-1].content);
+            elm.appendChild(newSpan);
+        }
         async function editElm(elm) {
+            const ID = this.location.pathname.split('/')[2];
             const msg = elm.parentElement.parentElement.parentElement
             const msgs = document.getElementById('messageBubbles');
             const idx = Array.prototype.indexOf.call(msgs.children, msg);
@@ -617,9 +632,33 @@
             msgtxt.innerHTML = '';
             msgtxt.appendChild(newDiv);
             const btnsDiv = document.createElement('div');
-            ['yes', 'no'].forEach(val => {
+            [['yes', async function(){
+                var newConv = CONV.slice()
+                newConv[idx-1].content = msgtxt.innerText;
+                const resp = await fetch('/api/v1/chat/'+ID, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        'conv': newConv
+                    })
+                });
+                json = await resp.json();
+                if (json.status === 'error') {
+                    console.error(json);
+                    alert(json.message);
+                    return;
+                }
+                CONV = json.data.messages;
+                endEdit(msgtxt, idx);
+                await delElm(elm, false, 1);
+                await startAI();
+            }], 
+             ['no', function(){ endEdit(msgtxt, idx)} ]].forEach(val => {
                 let newBtn = document.createElement('button');
-                newBtn.innerHTML = `<svg width="24" height="24"> <use href="#${val}" /> </svg>`;
+                newBtn.onclick = val[1];
+                newBtn.innerHTML = `<svg width="22" height="22"> <use href="#${val[0]}" /> </svg>`;
                 newBtn.classList.add('msgEditBtn');
                 btnsDiv.appendChild(newBtn);
             })
