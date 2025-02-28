@@ -305,24 +305,29 @@
             padding-top: 5px;
             position: relative;
         }
-        .code-block .codetop {
-            width: calc(100% - 30px);
+        .codetop {
+            width: calc(100% - 20px);
+            position: sticky;
+            top: 10px;
+            background-color: rgba(var(--accent-2-strong-rgb), 0.25);
+            border-radius: 10px;
+            padding: 10px;
             display: flex;
             align-items: center;
-            position: absolute;
+            padding: 5px 10px;
+            margin: 5px 0 10px 0;
         }
-        .code-block .codelang {
+        .codelang {
             width: inherit;
             pointer-events: none;
             font-size: small;
         }
         .code-block-txt {
-            margin-top: 35px;
             overflow-x: auto;
         }
         .code-block button {
             margin-top: 0;
-            margin-bottom: 5px;
+            margin-bottom: 0;
             padding: 5px 10px;
             white-space: nowrap;
         }
