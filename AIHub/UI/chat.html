@@ -57,6 +57,7 @@
         display: flex;
         flex-direction: column;
         align-items: end;
+        padding-bottom: 0;
     }
     .in:has(div[contenteditable=true]):focus {
         box-shadow: 0 0 0 3px rgba(var(--accent-2-strong-rgb), 0.8);
@@ -69,12 +70,16 @@
         padding: 5px;
         display: flex;
         flex-direction: column;
+        margin-bottom: 0;
     }
     .in > div[contenteditable=true] + div {
-        margin-right: 5px;
+        margin-right: 15px;
     }
     .msgEditBtn {
         background-color: rgba(var(--hov-rgb), 0.12);
+        margin: 8px 4px;
+        padding: 8px 10px;
+        border-radius: 15px;
     }
     .msgEditBtn:hover {
         background-color: rgba(var(--active-rgb), 0.25);
@@ -612,10 +617,10 @@
             msgtxt.innerHTML = '';
             msgtxt.appendChild(newDiv);
             const btnsDiv = document.createElement('div');
-            ['hi', 'bye'].forEach(val => {
+            ['yes', 'no'].forEach(val => {
                 let newBtn = document.createElement('button');
-                newBtn.innerText = val;
-                newBtn.classList.add('msgEditBtn')
+                newBtn.innerHTML = `<svg width="24" height="24"> <use href="#${val}" /> </svg>`;
+                newBtn.classList.add('msgEditBtn');
                 btnsDiv.appendChild(newBtn);
             })
             msgtxt.appendChild(btnsDiv);
