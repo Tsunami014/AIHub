@@ -3,6 +3,9 @@
 *.db
 *.db-journal
 
+AIHub.egg-info/*
+build/*
+
 runMain
 
 # Other weird stuff from g4f

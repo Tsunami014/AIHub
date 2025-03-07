@@ -19,7 +19,11 @@ class OllamaProvider(BaseProvider):
     REPR = '<OllamaProvider>'
     @staticmethod
     def stream(model, conv, opts):
-        ms = ollama.list().models
+        try:
+            ms = ollama.list().models
+        except ConnectionError:
+            yield format('Ollama is currently down. Ensure it is downloaded and running.', ['OLLAMA', ''], True)
+            return
         if model == ['best']:
             realm = sorted(ms, key=lambda x: x.size)[-1]
             model = realm.model
@@ -38,7 +42,10 @@ class OllamaProvider(BaseProvider):
     @staticmethod
     def getInfo(model):
         pref = ""
-        ms = ollama.list().models
+        try:
+            ms = ollama.list().models
+        except ConnectionError:
+            return 'Ollama is currently down. Ensure it is downloaded and running.'
         if model == ['best']:
             model = sorted(ms, key=lambda x: x.size)[-1]
             pref = f'Ollama\'s BEST model will be the one requiring the highest computational value: `{model.model}`.\n'
@@ -56,5 +63,8 @@ It was last modified at {time.day}/{time.month}/{time.year}, at {time.hour:02d}:
     
     @staticmethod
     def getHierachy():
-        ms = ollama.list().models
-        return [f'{i.model}<*sep*>{i.model.replace(':', ';')}' for i in ms]
+        try:
+            ms = ollama.list().models
+        except ConnectionError:
+            return []
+        return [f'{i.model}<*sep*>{i.model.replace(":", ";")}' for i in ms]

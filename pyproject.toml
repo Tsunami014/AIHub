@@ -19,8 +19,7 @@ maintainers = [
   {name = "Tsunami014", email = "tsunami014@duck.com"}
 ]
 readme = "README.md"
-license = "MIT"
-license-files = ["LICENSE"]
+license = { text = "MIT" }
 keywords = ["AI"]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -40,4 +39,4 @@ g4f-extras = [
 ]
 
 [project.gui-scripts]
-AIchat = "AIHub:__main__"
+AIHub = "AIHub:__main__"

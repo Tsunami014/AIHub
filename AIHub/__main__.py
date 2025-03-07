@@ -2,8 +2,8 @@ import flask
 from AIHub import providers
 from AIHub.providers.base import format
 from werkzeug.exceptions import BadRequest
-from multiprocessing import Process, Queue
 from threading import Lock
+from queue import Queue
 import re
 import time
 import json
@@ -11,9 +11,14 @@ import random
 import requests
 import sqlite3
 import os
+import sys
+if sys.platform == 'win32': # Bcos Windows is special and throws more tantrums than Linux (coz Linux is just better)
+    from threading import Thread as Process
+else:
+    from multiprocessing import Process
 
 PATH = os.path.dirname(os.path.abspath(__file__))
-with open(os.path.join(PATH, 'UI', 'template.html')) as f:
+with open(os.path.join(PATH, 'UI', 'template.html'), encoding='utf-8') as f:
     TEMPLATE = f.read()
 
 class DataBase:
@@ -37,14 +42,11 @@ class DataBase:
     def save(self):
         with self.lock:
             self.conn.commit()
-    
-    def __del__(self):
-        self.process.kill()
 
 DB = DataBase()
 
 def apply(website, links=''):
-    with open(os.path.join(PATH, 'UI', website)) as f:
+    with open(os.path.join(PATH, 'UI', website), encoding='utf-8') as f:
         fc = f.read()
     return TEMPLATE.replace('<!-- INSERT CODE -->', fc).replace('<!-- Insert links -->', links)
 
@@ -104,7 +106,7 @@ class AIProc:
     
     def _handleIt(self, it):
         if it is not None:
-            jsn = json.loads(f'[{it.rstrip(',')}]')
+            jsn = json.loads(f'[{it.rstrip(",")}]')
             DB.execute('UPDATE chats SET conv = ? WHERE id = ?', json.dumps({'messages': self.conv+[{'content': jsn[-1]['data'], 'role': 'bot', 'pfp': jsn[-1]['model']}]}), self.id)
             DB.save()
         else:
@@ -271,19 +273,19 @@ def handle_request(id, method=None):
 
 @app.route('/style.css')
 def style():
-    with open(os.path.join(PATH, 'UI', 'style.css')) as f:
+    with open(os.path.join(PATH, 'UI', 'style.css'), encoding='utf-8') as f:
         return f.read(), 200, {'Content-Type': 'text/css'}
 @app.route('/chat/style.css')
 def chatstyle():
-    with open(os.path.join(PATH, 'UI', 'chat', 'extra.css')) as f:
+    with open(os.path.join(PATH, 'UI', 'chat', 'extra.css'), encoding='utf-8') as f:
         return f.read(), 200, {'Content-Type': 'text/css'}
 @app.route('/script.js')
 def script():
-    with open(os.path.join(PATH, 'UI', 'script.js')) as f:
+    with open(os.path.join(PATH, 'UI', 'script.js'), encoding='utf-8') as f:
         return f.read(), 200, {'Content-Type': 'application/javascript'}
 @app.route('/chat/script.js')
 def chatscript():
-    with open(os.path.join(PATH, 'UI', 'chat', 'extra.js')) as f:
+    with open(os.path.join(PATH, 'UI', 'chat', 'extra.js'), encoding='utf-8') as f:
         return f.read(), 200, {'Content-Type': 'application/javascript'}
 
 @app.route('/')

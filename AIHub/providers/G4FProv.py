@@ -200,15 +200,15 @@ class G4FProvider(BaseProvider):
     @classmethod
     def getInfo(cls, model):
         def props(prov):
-            return f"""
-{" - Label: "+prov.label+'\n' if hasattr(prov, 'label') else ''}\
-{" - Parent: "+prov.parent+'\n' if hasattr(prov, 'parent') else ''}\
- - {'Does not require' if not prov.needs_auth else '**Requires**'} authentification{" at "+prov.login_url if getattr(prov, 'login_url', None) is not None else ''}
- - {'Supports' if prov.supports_stream else '**Does not support**'} streaming
- - {'Is' if model[-1] in getattr(prov, "image_models", []) else 'Is **not**'} an image model
- - {'Is' if model[-1] in getattr(prov, "vision_models", []) else 'Is **not**'} a vision model
- - located {"at "+prov.url if prov.url is not None else "nowhere..."}
-"""[:-1]
+            return '\n'.join(i for i in [
+    (f" - Label: {prov.label}\n") if hasattr(prov, 'label') else None,
+    (f" - Parent: {prov.parent}\n") if hasattr(prov, 'parent') else None,
+    f" - {'Does not require' if not prov.needs_auth else '**Requires**'} authentification{' at '+prov.login_url if getattr(prov, 'login_url', None) is not None else ''}",
+    f" - {'Supports' if prov.supports_stream else '**Does not support**'} streaming",
+    f" - {'Is' if model[-1] in getattr(prov, 'image_models', []) else 'Is **not**'} an image model",
+    f" - {'Is' if model[-1] in getattr(prov, 'vision_models', []) else 'Is **not**'} a vision model",
+    f" - located {'at '+prov.url if prov.url is not None else 'nowhere...'}"
+            ] if i is not None)
         firstBest = False
         if model == ['random']:
             return 'You have selected a RANDOM model from GPT4Free! This tries every model in a random order until one works!'
@@ -226,8 +226,9 @@ It is served by {len(g4f.models.__models__[model[1]][1])} providers.\nIt has the
         secBest = model[1] == 'best'
         if secBest:
             model = [model[0], prov.default_model]
+        firstBestTxt = "GPT4Free's *best*" if firstBest else "a GPT4Free"
         # getattr(provider, "use_nodriver", False) ???
-        return f'`{model[0]}`\'s {"*best* " if secBest else ""}model `{model[-1]}` is {"GPT4Free's *best*" if firstBest else "a GPT4Free"} model, which has the following properties:'+props(prov)
+        return f"`{model[0]}`'s {'*best* ' if secBest else ''}model `{model[-1]}` is {firstBestTxt} model, which has the following properties:"+props(prov)
     
     @classmethod
     async def _getHierachy(cls):
