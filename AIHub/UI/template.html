@@ -289,6 +289,8 @@
             background-color: rgba(125, 125, 125, 0.5);
             border-left: solid 3px rgba(64, 64, 64, 0.8);
             padding-left: 2px;
+            display: inline-block;
+            padding-left: 5px;
         }
 
         .code-inline {
@@ -351,6 +353,29 @@
 
         .table-top {
             border-bottom: 2px solid black !important;
+        }
+
+        .thoughts {
+            padding: 10px;
+            margin: 5px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: rgba(var(--accent-2-dark-rgb), 0.2);
+            border: 2px solid rgb(var(--accent-2-dark-rgb));
+        }
+        summary {
+            cursor: pointer;
+            padding-bottom: 5px;
+            box-shadow: 0 0 0 0;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+             -khtml-user-select: none;
+               -moz-user-select: none;
+                -ms-user-select: none;
+                    user-select: none;
+        }
+        .txt-outline {
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         }
 
         #PromptSetts > input[type="number"] {
@@ -460,12 +485,25 @@
                 .replaceAll(/"/gm, "&quot;")
                 .replaceAll(/'/gm, "&#039;");
             
+            if (safeText.startsWith('&lt;think&gt;')) {
+                let thoughtsHeader = '<summary><span class="txt-outline">💭</span>  Thoughts</summary>';
+                if (safeText.match(/^&lt;[\/\\]think&gt;$/gm) !== null) {
+                    safeText = safeText.replace(/^&lt;think&gt;\n((?:.|\n)+)\n&lt;[\/\\]think&gt;\n?/g, `<details class="thoughts" open>${thoughtsHeader}$1</details>`);
+                } else {
+                    safeText = `<details class="thoughts" open>${thoughtsHeader}${safeText.slice('&lt;think&gt;\n'.length)}</details>`
+                }
+            }
+            
             var blocks = [];
             // TODO: Backslashes
             safeText.split(/^\s*```/gm).forEach((val, idx)=>{
                 var newVal;
                 if (idx % 2 == 0) {
                     newVal = val
+                        .replaceAll(/^(\s*)&gt; (.+)$/gm, (_, spaces, content) => {
+                            let margin = Math.floor(spaces.replace('\t', '    ').length / 2)*2;
+                            return `<span class="quote" style="margin-left: ${margin}em;">${content}</span>`
+                        })
                         .replaceAll(/^(?:(?:\|.*)+\|\n){2,}/gm,
                         (match) => {
                             var spl = match.split('\n');
@@ -504,15 +542,13 @@
                         
                         .replaceAll(/!\[(.*)\]\((.*)\)/g, '<img class="format-img" href="$2" alt="$1">')
                         .replaceAll(/\[(.*)\]\((.*)\)/g, '<a href="$2">$1</a>')
-                        
-                        .replaceAll(/^&gt; ?(.+)\n?/gm, '<span class="quote">$1</span><br>')
 
-                        .replaceAll(/^# ([^\n]*)/gm, '<h1>$1</h1>')
-                        .replaceAll(/^## ([^\n]*)/gm, '<h2>$1</h2>')
-                        .replaceAll(/^### ([^\n]*)/gm, '<h3>$1</h3>')
-                        .replaceAll(/^#### ([^\n]*)/gm, '<h4>$1</h4>')
-                        .replaceAll(/^##### ([^\n]*)/gm, '<h5>$1</h5>')
-                        .replaceAll(/^###### ([^\n]*)/gm, '<h6>$1</h6>')
+                        .replaceAll(/^# ([^\n]*)$/gm, '<h1>$1</h1>')
+                        .replaceAll(/^## ([^\n]*)$/gm, '<h2>$1</h2>')
+                        .replaceAll(/^### ([^\n]*)$/gm, '<h3>$1</h3>')
+                        .replaceAll(/^#### ([^\n]*)$/gm, '<h4>$1</h4>')
+                        .replaceAll(/^##### ([^\n]*)$/gm, '<h5>$1</h5>')
+                        .replaceAll(/^###### ([^\n]*)$/gm, '<h6>$1</h6>')
                         .replaceAll(/`([^`\n]+)`/g, '<span class="code-inline">$1</span>')
 
                         .replaceAll(/^[*\-_]{3}$/gm, '<hr>')
@@ -520,8 +556,8 @@
                         .replaceAll(/>\n+/gm, '>')
                         .replaceAll('\n</div>', '</div>')
 
-                        .replaceAll(/[*_]{2}((?=[^*_])[^\n<]+(?<=[^*_]))[*_]{2}/g,'<b>$1</b>')
-                        .replaceAll(/[*_]((?=[^*_])(?:[^\n<]|(?:<\/?b>))+(?<=[^*_]))[*_]/g, '<i>$1</i>')
+                        .replaceAll(/[*_]{2}((?=[^*_])[^\n<]+?(?<=[^*_]))[*_]{2}/g,'<b>$1</b>')
+                        .replaceAll(/[*_]((?=[^*_])(?:[^\n<]|(?:<\/?b>))+?(?<=[^*_]))[*_]/g, '<i>$1</i>')
                 } else {
                     const newlineIndex = val.indexOf('\n');
                     let language = '';
