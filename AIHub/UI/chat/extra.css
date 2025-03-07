@@ -1,0 +1,144 @@
+.centre {
+    display: flex;
+    justify-content: center;
+    align-items: end;
+    height: 100%;
+}
+#chatContainer {
+    transition: all .25s linear;
+    margin: 17px;
+    width: 90%;
+    z-index: 1;
+}
+
+#messages {
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    position: absolute;
+    overflow-y: scroll;
+}
+.out {
+    height: fit-content;
+    display: flex;
+    padding: 0px 10px;
+}
+.myOut {
+    justify-content: end;
+}
+.in {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-radius: 10px;
+    padding: 10px;
+}
+.in > span {
+    max-width: 100%;
+}
+.myIn {
+    background-color: rgba(var(--accent-1-strong-rgb), 0.5);
+}
+.botIn {
+    background-color: rgba(var(--accent-2-strong-rgb), 0.5);
+}
+.animateFont {
+    transition: all .25s var(--transition);
+    transform: scaleX(0);
+}
+.anim {
+    transform: scaleX(1);
+}
+
+.in:has(div[contenteditable=true]) {
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    padding-bottom: 0;
+}
+.in:has(div[contenteditable=true]):focus {
+    box-shadow: 0 0 0 3px rgba(var(--accent-2-strong-rgb), 0.8);
+}
+.in > div[contenteditable=true] {
+    box-shadow: 0 0 0 2px rgba(var(--accent-2-strong-rgb), 0.5);
+    border-radius: 10px;
+    background-color: whitesmoke;
+    margin: 10px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+}
+.in > div[contenteditable=true] + div {
+    margin-right: 15px;
+}
+.msgEditBtn {
+    background-color: rgba(var(--hov-rgb), 0.12);
+    margin: 8px 4px;
+    padding: 8px 10px;
+    border-radius: 15px;
+}
+.msgEditBtn:hover {
+    background-color: rgba(var(--active-rgb), 0.25);
+}
+.msgEditBtn:active {
+    background-color: rgba(var(--accent-1-dark-rgb), 0.45);
+}
+
+.pfpParent {
+    position: relative;
+    height: fit-content;
+}
+.pfp {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+    background-color: black;
+    object-fit: cover;
+}
+.pfpParent > .tooltip {
+    width: max-content;
+    left: 0;
+    bottom: calc(100% + 10px);
+}
+
+.msgcontainer {
+    max-width: 60%;
+    width: fit-content;
+}
+.myCont {
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+}
+
+.buttons {
+    margin: 0px 5px;
+    display: flex;
+    min-width: fit-content;
+}
+.myButtons {
+    justify-content: end;
+    /*flex-direction: row-reverse;*/
+}
+.chatBtn {
+    margin: 5px 2px;
+    position: relative;
+}
+
+#goToBottom {
+    height: fit-content;
+    pointer-events: initial;
+}
+#goToBottomContainer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    justify-content: center;
+    display: flex;
+    pointer-events: none;
+}

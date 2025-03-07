@@ -1,0 +1,456 @@
+:root {
+    --hov-rgb: 60, 70, 80;
+    --active-rgb: 75, 90, 110;
+
+    --primary-1: rgba(0, 255, 100, 0.07);
+    --accent-1-light-rgb: 140, 150, 170;
+    --accent-1-dark-rgb: 60, 75, 85;
+    --accent-1-strong-rgb: 75, 110, 190;
+
+    --primary-2: rgba(0, 150, 255, 0.1);
+    --accent-2-light-rgb: 140, 170, 140;
+    --accent-2-dark-rgb: 60, 85, 65;
+    --accent-2-strong-rgb: 75, 190, 110;
+
+    --transition: cubic-bezier(.17,.84,.44,1);
+
+    --topbar-height: 76px;
+}
+
+* {
+    font-family: garamund;
+}
+
+*:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(var(--accent-2-strong-rgb), 0.5);
+}
+.sidebar *:focus {
+    box-shadow: 0 0 0 2px rgba(var(--accent-1-strong-rgb), 0.5);
+}
+.noAccent:focus {
+    box-shadow: none !important;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+button, *[role="button"] {
+    border-radius: 10px;
+    border: 0px;
+    margin: 8px;
+    background-color: rgba(0, 0, 0, 0);
+    padding: 10px;
+    cursor: pointer;
+}
+
+button:hover, *[role="button"]:hover {
+    background-color: rgba(var(--hov-rgb), 0.07);
+}
+
+button:active, *[role="button"]:active {
+    background-color: rgba(var(--active-rgb), 0.12);
+}
+
+.visible {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.4s linear;
+}
+.hidden {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s 0.4s, opacity 0.4s linear;
+    pointer-events: none;
+}
+.slightlyHidden {
+    opacity: 0.5;
+    transition: visibility 0s 0.4s, opacity 0.4s linear;
+    pointer-events: none;
+}
+
+#newChat {
+    right: 0;
+    position: absolute;
+}
+
+.sidebar {
+    position: relative;
+    top: 0;
+    z-index: 1;
+    background-color: whitesmoke;
+}
+.sidebarTrans {
+    transition: all 0.7s var(--transition);
+}
+.sidebarColour {
+    background-color: var(--primary-1);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.sidebarSegment {
+    width: 100%;
+}
+
+#sideLeft {
+    border-right: 2px groove light-dark(rgba(var(--accent-1-light-rgb), 0.7), rgba(var(--accent-1-dark-rgb), 0.7));
+    width: 260px;
+    min-width: 260px;
+    left: 0;
+}
+#sideRight {
+    border-left: 2px groove light-dark(rgba(var(--accent-1-light-rgb), 0.7), rgba(var(--accent-1-dark-rgb), 0.7));
+    width: 260px;
+    min-width: 260px;
+    right: 0;
+}
+
+#topBar {
+    width: 100vw;
+    position: absolute;
+    background-color: var(--primary-2);
+    height: var(--topbar-height);
+    border-bottom: 2px groove light-dark(rgba(var(--accent-2-light-rgb), 0.7), rgba(var(--accent-2-dark-rgb), 0.7));
+}
+
+#main {
+    position: relative;
+    height: calc(100vh - var(--topbar-height));
+    margin-top: var(--topbar-height);
+    flex-grow: 1;
+    background-color: var(--primary-2);
+}
+
+#openSideLeft {
+    position: fixed;
+}
+#openSideRight {
+    position: fixed;
+    right: 0;
+}
+
+#chatBorder, input {
+    background-color: whitesmoke;
+    border: 2px solid light-dark(rgba(var(--accent-2-light-rgb), 0.4), rgba(var(--accent-2-dark-rgb), 0.4));
+    border-radius: 10px;
+    padding: 15px;
+    width: 100%;
+    accent-color: rgba(var(--accent-2-strong-rgb), 0.5);
+    cursor: text;
+}
+#chatBorder:has(*:focus), input:has(*:focus) {
+    box-shadow: 0 0 0 2px rgba(var(--accent-2-strong-rgb), 0.5);
+}
+.textarea {
+    font-size: 14pt;
+    display: block;
+    overflow: auto;
+    min-height: 40px;
+    max-height: 200px;
+    align-content: center;
+}
+
+#renameInp {
+    width: calc(100% - (20px * 2));
+    margin: 8px;
+}
+
+.placeholder {
+    color: gray;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+     -khtml-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+}
+
+#chatContainer {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+}
+#chatIn {
+    overflow-y: auto;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+#prevChats {
+    height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.prevChatBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% - 8px * 2);
+    min-height: 16px;
+    padding: 0;
+    padding-left: 10px;
+}
+.prevChatBtn > span {
+    width: inherit;
+}
+.moreBtn {
+    display: flex;
+    padding: 0px 10px;
+    margin: 0;
+    margin-left: 10px;
+    flex-shrink: inherit
+}
+
+#morePage {
+    background-color: var(--primary-2);
+    border: 2px solid rgba(var(--accent-1-light-rgb), 0.7);
+    border-radius: 10px;
+    margin: 20px;
+    padding: 0px 20px;
+
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+}
+.morePageBtn {
+    width: fit-content;
+    height: fit-content;
+    position: relative;
+}
+
+#RightSettings {
+    width: 100%;
+    text-align: center;
+    overflow-y: auto;
+}
+#rightCloseButtonContainer {
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    justify-content: end;
+}
+
+select {
+    width: calc(100% - 10px);
+    padding: 7px;
+    margin: 5px 5px;
+    background-color: whitesmoke;
+    border-radius: 10px;
+    border-color: rgba(var(--accent-2-light-rgb), 0.7);
+}
+
+#AIText {
+    font-size: small;
+    font-style: italic;
+    color: darkslategray;
+    margin: 10px;
+}
+
+.tooltip {
+    background-color: black;
+    color: white;
+    z-index: 2;
+    border-radius: 10px;
+    visibility: hidden;
+    text-align: center;
+    padding: 5px;
+    position: absolute;
+    bottom: 125%;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    left: -25%;
+    right: -25%;
+}
+
+*:hover > .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.quote {
+    background-color: rgba(125, 125, 125, 0.5);
+    border-left: solid 3px rgba(64, 64, 64, 0.8);
+    padding-left: 2px;
+    display: inline-block;
+    padding-left: 5px;
+}
+
+.code-inline {
+    border: solid 1px rgba(125, 125, 125, 0.25);
+    background-color: rgba(125, 125, 125, 0.25);
+    border-radius: 5px;
+    font-family:'Courier New', Courier, monospace;
+    padding: 2px;
+}
+
+.code-block {
+    padding: 15px;
+    border-radius: 5px;
+    border: solid 2px rgba(125, 125, 125, 0.8);
+    padding-top: 5px;
+    position: relative;
+}
+.codetop {
+    width: calc(100% - 20px);
+    position: sticky;
+    top: 10px;
+    background-color: rgba(var(--accent-2-strong-rgb), 0.25);
+    border-radius: 10px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    margin: 5px 0 10px 0;
+}
+.codelang {
+    width: inherit;
+    pointer-events: none;
+    font-size: small;
+}
+.code-block-txt {
+    overflow-x: auto;
+}
+.code-block button {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 5px 10px;
+    white-space: nowrap;
+}
+
+.format-img {
+    min-width: 14px;
+    min-height: 14px;
+}
+
+.format-table {
+    border-collapse: collapse;
+    border-style: hidden;
+    border-radius: 5px;
+    box-shadow: 0 0 0 1px #666;
+}
+
+.format-table td {
+    border: 1px solid grey;
+}
+
+.table-top {
+    border-bottom: 2px solid black !important;
+}
+
+.thoughts {
+    padding: 10px;
+    margin: 10px 0px;
+    border-radius: 5px;
+    background-color: rgba(var(--accent-2-dark-rgb), 0.2);
+    border: 2px solid rgb(var(--accent-2-dark-rgb));
+}
+summary {
+    position: sticky;
+    top: 10px;
+    background: rgba(var(--accent-2-dark-rgb), 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 0 0 0;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+     -khtml-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+}
+.txt-outline {
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+#PromptSetts > input[type="number"] {
+    width: 80%;
+    background-color: whitesmoke;
+    padding: 10px;
+}
+
+.boolLabel {
+    display: flex;
+    justify-content: center;
+}
+.boolLabel > input[type="checkbox"] {
+    width: fit-content;
+    margin-left: 20px;
+    cursor: pointer;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    transition: opacity 500ms;
+    visibility: hidden;
+    opacity: 0;
+    z-index: 2;
+}
+.overlay.overlay-open {
+    visibility: visible;
+    opacity: 1;
+}
+
+.popup {
+    margin: 70px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 5px;
+    width: 60%;
+    height: 70vh;
+    overflow: clip;
+    position: relative;
+}
+
+.popup .close {
+    position: absolute;
+    top: 0;
+    right: 5px;
+    height: 34px;
+    color: #333;
+}
+.popup .close:hover {
+    color: #06D85F;
+}
+
+#popupContent {
+    border: solid 1px black;
+    border-radius: 5px;
+    width: 100%;
+    height: calc(100% - 30px);
+    top: 30px;
+    position: relative;
+    overflow: clip;
+}
+
+.sideAnim {
+    width: 0 !important;
+    min-width: 0 !important;
+    border: none !important;
+    pointer-events: none !important;
+}
+
+#defs {
+    display: none !important;
+}

@@ -43,16 +43,12 @@ class DataBase:
 
 DB = DataBase()
 
-def apply(website):
+def apply(website, links=''):
     with open(os.path.join(PATH, 'UI', website)) as f:
         fc = f.read()
-    return TEMPLATE.replace('<!-- INSERT CODE -->', fc)
+    return TEMPLATE.replace('<!-- INSERT CODE -->', fc).replace('<!-- Insert links -->', links)
 
 app = flask.Flask(__name__)
-
-@app.route('/')
-def index():
-    return apply('init.html')
 
 PFPCache = {}
 @app.route('/api/v1/ai/pfp/<model>')
@@ -271,9 +267,29 @@ def handle_request(id, method=None):
     else:
         return flask.jsonify({"status": "error", "id": id, "message": f"Method {meth} not allowed for id {id}"}), 405
 
+@app.route('/style.css')
+def style():
+    with open(os.path.join(PATH, 'UI', 'style.css')) as f:
+        return f.read(), 200, {'Content-Type': 'text/css'}
+@app.route('/chat/style.css')
+def chatstyle():
+    with open(os.path.join(PATH, 'UI', 'chat', 'extra.css')) as f:
+        return f.read(), 200, {'Content-Type': 'text/css'}
+@app.route('/script.js')
+def script():
+    with open(os.path.join(PATH, 'UI', 'script.js')) as f:
+        return f.read(), 200, {'Content-Type': 'application/javascript'}
+@app.route('/chat/script.js')
+def chatscript():
+    with open(os.path.join(PATH, 'UI', 'chat', 'extra.js')) as f:
+        return f.read(), 200, {'Content-Type': 'application/javascript'}
+
+@app.route('/')
+def index():
+    return apply('init.html')
 @app.route('/chat/<id>')
 def chat(id):
-    return apply('chat.html')
+    return apply('chat/extra.html', '<link rel="stylesheet" href="/chat/style.css"><script src="/chat/script.js"></script>')
 
 if __name__ == '__main__':
     app.run()
