@@ -3,5 +3,7 @@
 *.db
 *.db-journal
 
+runMain
+
 # Other weird stuff from g4f
 har_and_cookies
