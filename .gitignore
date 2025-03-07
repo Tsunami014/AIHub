@@ -3,8 +3,8 @@
 *.db
 *.db-journal
 
-AIHub.egg-info/*
-build/*
+AIHub.egg-info
+build
 
 runMain
 

@@ -38,5 +38,8 @@ g4f-extras = [
     "browser_cookie3"
 ]
 
-[project.gui-scripts]
-AIHub = "AIHub:__main__"
+[project.scripts]
+AIHub = "AIHub.__main__:main"
+
+[tool.setuptools.package-data]
+"*" = ["*.html", "*.js", "*.css"]

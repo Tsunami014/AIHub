@@ -295,5 +295,8 @@ def index():
 def chat(id):
     return apply('chat/extra.html', '<link rel="stylesheet" href="/chat/style.css"><script src="/chat/script.js"></script>')
 
-if __name__ == '__main__':
+def main():
     app.run()
+
+if __name__ == '__main__':
+    main()
