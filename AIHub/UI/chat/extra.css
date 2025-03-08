@@ -88,8 +88,9 @@
 }
 
 .pfpParent {
-    position: relative;
     height: fit-content;
+    position: sticky;
+    top: 5px;
 }
 .pfp {
     width: 50px;
