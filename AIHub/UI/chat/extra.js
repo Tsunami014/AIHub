@@ -1,7 +1,3 @@
-insertTemplate(document.currentScript.parentElement, 'chatContainer');
-unuseTemplate('AIchatButtons');
-unuseTemplate('MychatButtons');
-
 var CONV = [];
 
 var PFPCache = {};
@@ -46,8 +42,7 @@ function makeMessage(role, content, animate = true, pfp = '') {
         pfpImg.classList.add('pfp');
         pfpElm.appendChild(pfpImg);
         
-        var pfpTooltip = document.createElement('div');
-        pfpTooltip.classList.add('tooltip');
+        var pfpTooltip = document.createElement('ui-tooltip');
         pfpElm.appendChild(pfpTooltip);
 
         getPfp(pfpElm, pfp);
@@ -157,13 +152,6 @@ function setUserScrolling() {
     setTimeout(() => (userScrolling = false), 100);
 }
 
-document.getElementById('messages').addEventListener('wheel', setUserScrolling);
-document.getElementById('messages').addEventListener('touchmove', setUserScrolling);
-document.getElementById('messages').addEventListener('keydown', (event) => {
-    if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', 'Space'].includes(event.key)) {
-        setUserScrolling();
-    }
-});
 function onScrollMsgs() {
     if (!userScrolling) {
         return;
@@ -190,7 +178,6 @@ function updateHei() {
     const bottomCont = document.getElementById('goToBottomContainer');
     bottomCont.style.height = `calc(3em + ${hei}px)`
 }
-document.getElementById('chatIn').addEventListener("input", updateHei);
 
 function scrollMsgs() {
     const scrollable = document.getElementById('messages');
@@ -520,14 +507,37 @@ async function loadData() {
     }
 }
 
-loadData();
 
 function fix_hei() {
     const cont = document.getElementById('chatContainer');
     const hei = cont.offsetHeight + 54;
     document.getElementById('spacer').style.height = hei + 'px';
 }
-fix_hei();
-document.getElementById('chatIn').addEventListener("input", function() {
-    fix_hei();
-});
+
+requestAnimationFrame(()=>{
+    const mc = document.getElementById('mainCentre');
+    insertTemplate(mc, 'chatContainer');
+    unuseTemplate('AIchatButtons');
+    unuseTemplate('MychatButtons');
+
+    document.getElementById('chatIn').addEventListener("input", updateHei);
+
+    document.getElementById('messages').addEventListener('wheel', setUserScrolling);
+    document.getElementById('messages').addEventListener('touchmove', setUserScrolling);
+    document.getElementById('messages').addEventListener('keydown', (event) => {
+        if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', 'Space'].includes(event.key)) {
+            setUserScrolling();
+        }
+    });
+
+    document.getElementById('chatIn').addEventListener("input", function() {
+        fix_hei();
+    });
+    
+
+    requestAnimationFrame(()=>{
+        mc.removeChild(mc.firstElementChild);
+        loadData();
+        fix_hei();
+    })
+})

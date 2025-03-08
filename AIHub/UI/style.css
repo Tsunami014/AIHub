@@ -260,27 +260,23 @@ select {
     margin: 10px;
 }
 
-.tooltip {
-    background-color: black;
-    color: white;
-    z-index: 2;
-    border-radius: 10px;
-    visibility: hidden;
-    text-align: center;
-    padding: 5px;
+#tooltips {
+    z-index: 99;
     position: absolute;
-    bottom: 125%;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-    left: -25%;
-    right: -25%;
 }
 
-*:hover > .tooltip {
-    visibility: visible;
-    opacity: 1;
-}
+ui-tooltip {
+    display: block;
+    background-color: black;
+    color: white;
+    border-radius: 10px;
+    text-align: center;
+    padding: 5px 10px;
+    position: absolute;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+}  
 
 .quote {
     background-color: rgba(125, 125, 125, 0.5);

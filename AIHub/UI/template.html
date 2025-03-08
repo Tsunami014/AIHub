@@ -5,6 +5,7 @@
     <!-- Insert links -->
 </head>
 <body onload="init()">
+    <div id="tooltips"></div>
     <div id="defs">
         <svg>
             <defs>
@@ -105,7 +106,7 @@
                     <svg class="moreBtnSvg" height="38" width="30">
                         <use href="#more"/>
                     </svg>
-                    <div class="tooltip">Options</div>
+                    <ui-tooltip>Options</ui-tooltip>
                 </div>
             </button>
         </div>
@@ -115,19 +116,19 @@
                 <svg height="38" width="30">
                     <use href="#share"/>
                 </svg>
-                <div class="tooltip">Share</div>
+                <ui-tooltip>Share</ui-tooltip>
             </div>
             <div class="morePageBtn" role="button" tabindex="0" onclick="renameConv()">
                 <svg height="38" width="30">
                     <use href="#rename"/>
                 </svg>
-                <div class="tooltip">Rename</div>
+                <ui-tooltip>Rename</ui-tooltip>
             </div>
             <div class="morePageBtn" role="button" tabindex="0" onclick="deleteConv()">
                 <svg height="38" width="30">
                     <use href="#delete"/>
                 </svg>
-                <div class="tooltip" style="color: red">Delete</div>
+                <ui-tooltip style="color: red">Delete</ui-tooltip>
             </div>
         </div>
     </div>

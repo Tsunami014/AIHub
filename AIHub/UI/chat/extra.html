@@ -5,51 +5,53 @@
 <div id="goToBottomContainer">
     <button id="goToBottom" onclick="scrollMsgs()">🡇</button>
 </div>
-<div class="centre">
-    <div id="AIchatButtons" class="buttons">
-        <div class="chatBtn" onclick="redo(this)" role="button" tabindex="0">
-            <svg width="18" height="18">
-                <use href="#redo" />
-            </svg>
-            <div class="tooltip"><b>Redo</b></div>
+<div id="mainCentre" class="centre">
+    <div class="honorary-defs">
+        <div id="AIchatButtons" class="buttons">
+            <div class="chatBtn" onclick="redo(this)" role="button" tabindex="0">
+                <svg width="18" height="18">
+                    <use href="#redo" />
+                </svg>
+                <ui-tooltip><b>Redo</b></ui-tooltip>
+            </div>
+            <div class="chatBtn" onclick="backElm(this)" role="button" tabindex="0">
+                <svg width="18" height="18">
+                    <use href="#backspace" />
+                </svg>
+                <ui-tooltip><b>Delete</b><br>this</ui-tooltip>
+            </div>
+            <div class="chatBtn" onclick="delElm(this)" role="button" tabindex="0">
+                <svg width="18" height="18">
+                    <use href="#delete" />
+                </svg>
+                <ui-tooltip><b>Delete</b><br>All next</ui-tooltip>
+            </div>
         </div>
-        <div class="chatBtn" onclick="backElm(this)" role="button" tabindex="0">
-            <svg width="18" height="18">
-                <use href="#backspace" />
-            </svg>
-            <div class="tooltip"><b>Delete</b><br>this</div>
-        </div>
-        <div class="chatBtn" onclick="delElm(this)" role="button" tabindex="0">
-            <svg width="18" height="18">
-                <use href="#delete" />
-            </svg>
-            <div class="tooltip"><b>Delete</b><br>All next</div>
-        </div>
-    </div>
-    <div id="MychatButtons" class="buttons myButtons">
-        <div class="chatBtn" onclick="redo(this, 1)" role="button" tabindex="0">
-            <svg width="18" height="18">
-                <use href="#redo" />
-            </svg>
-            <div class="tooltip"><b>Redo</b></div>
-        </div>
-        <div class="chatBtn" onclick="editElm(this)" role="button" tabindex="0">
-            <svg width="18" height="18">
-                <use href="#editText" />
-            </svg>
-            <div class="tooltip"><b>Edit</b></div>
-        </div>
-        <div class="chatBtn" onclick="backElm(this)" role="button" tabindex="0">
-            <svg width="18" height="18">
-                <use href="#backspace" />
-            </svg>
-            <div class="tooltip"><b>Delete</b><br>this</div>
-        </div>
-        <div class="chatBtn" onclick="delElm(this)" role="button" tabindex="0">
-            <svg width="18" height="18">
-                <use href="#delete" />
-            </svg>
-            <div class="tooltip"><b>Delete</b><br>All next</div>
+        <div id="MychatButtons" class="buttons myButtons">
+            <div class="chatBtn" onclick="redo(this, 1)" role="button" tabindex="0">
+                <svg width="18" height="18">
+                    <use href="#redo" />
+                </svg>
+                <ui-tooltip><b>Redo</b></ui-tooltip>
+            </div>
+            <div class="chatBtn" onclick="editElm(this)" role="button" tabindex="0">
+                <svg width="18" height="18">
+                    <use href="#editText" />
+                </svg>
+                <ui-tooltip><b>Edit</b></ui-tooltip>
+            </div>
+            <div class="chatBtn" onclick="backElm(this)" role="button" tabindex="0">
+                <svg width="18" height="18">
+                    <use href="#backspace" />
+                </svg>
+                <ui-tooltip><b>Delete</b><br>this</ui-tooltip>
+            </div>
+            <div class="chatBtn" onclick="delElm(this)" role="button" tabindex="0">
+                <svg width="18" height="18">
+                    <use href="#delete" />
+                </svg>
+                <ui-tooltip><b>Delete</b><br>All next</ui-tooltip>
+            </div>
         </div>
     </div>
 </div>

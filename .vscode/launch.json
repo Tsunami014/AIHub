@@ -13,7 +13,8 @@
             "cwd": "${workspaceFolder}",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
-            }
+            },
+            "justMyCode": false
         },
         {
             "name": "Python: Current File",

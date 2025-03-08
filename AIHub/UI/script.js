@@ -671,3 +671,123 @@ function unuseTemplate(id) {
 }
 
 function onChatGo() {} // For overriding
+
+function isChildOfDefs(element) {
+    let parent = element;
+    while (parent) {
+        if (parent.id === "defs" || parent.classList.contains('honorary-defs')) return true;
+        parent = parent.parentElement;
+    }
+    return false;
+}
+
+class UITooltip extends HTMLElement {
+    constructor() {
+        super();
+        this.updatePosition = this.updatePosition.bind(this);
+        this.showTooltip = this.showTooltip.bind(this);
+        this.hideTooltip = this.hideTooltip.bind(this);
+        this.anchor = null;
+        this.alreadyAppended = false;
+        this._observer = null;
+    }
+
+    connectedCallback() {
+        if (this.alreadyAppended) return;
+
+        if (isChildOfDefs(this)) {
+            this._startObserver();
+            return;
+        }
+
+        this._stopObserver();
+
+
+        const tooltipContainer = document.getElementById('tooltips');
+        if (!tooltipContainer) {
+            console.warn("ui-tooltip: Tooltip container with id 'tooltips' not found.");
+            return;
+        }
+        if (this.parentElement === tooltipContainer) {
+            this.alreadyAppended = true;
+            return;
+        }
+
+        // Initialization
+        let anchor = this.parentElement;
+        if (!anchor) {
+            console.warn("ui-tooltip: No valid anchor found.");
+            return;
+        }
+        this.alreadyAppended = true;
+        this.anchor = anchor;
+        
+        tooltipContainer.appendChild(this);
+
+        this.hideTooltip();
+        requestAnimationFrame(this.updatePosition);
+        
+        this.anchor.addEventListener("mouseenter", this.showTooltip);
+        this.anchor.addEventListener("mouseleave", this.hideTooltip);
+        
+        window.addEventListener("wheel", this.updatePosition);
+        window.addEventListener("resize", this.updatePosition);
+    }
+
+    disconnectedCallback() {
+        if (this.anchor) {
+            this.anchor.removeEventListener("mouseenter", this.showTooltip);
+            this.anchor.removeEventListener("mouseleave", this.hideTooltip);
+        }
+        window.removeEventListener("wheel", this.updatePosition);
+        window.removeEventListener("resize", this.updatePosition);
+        this.alreadyAppended = false;
+        this._stopObserver();
+    }
+    
+    _startObserver() {
+        if (this._observer) return;
+        const config = { childList: true, subtree: false };
+        const callback = (mutations) => {
+            if (!isChildOfDefs(this)) {
+                this._stopObserver();
+                this.connectedCallback();
+            }
+        };
+        if (this.parentNode) {
+            this._observer = new MutationObserver(callback);
+            this._observer.observe(this.parentNode, config);
+        }
+    }
+    
+    _stopObserver() {
+        if (this._observer) {
+            this._observer.disconnect();
+            this._observer = null;
+        }
+    }
+
+    updatePosition() {
+        if (!this.anchor) return;
+        const rect = this.anchor.getBoundingClientRect();
+        
+        const top = rect.top - this.offsetHeight - 5;
+        const left = rect.left + (rect.width - this.offsetWidth) / 2;
+        
+        this.style.top = `${top}px`;
+        this.style.left = `${left}px`;
+    }
+
+    showTooltip() {
+        this.updatePosition();
+        this.style.opacity = "1";
+        this.style.pointerEvents = "auto";
+    }
+
+    hideTooltip() {
+        this.style.opacity = "0";
+        this.style.pointerEvents = "none";
+    }
+}
+
+customElements.define("ui-tooltip", UITooltip);
