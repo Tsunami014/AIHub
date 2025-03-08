@@ -36,6 +36,7 @@
 }
 .in > span {
     max-width: 100%;
+    word-wrap: break-word;
 }
 .myIn {
     background-color: rgba(var(--accent-1-strong-rgb), 0.5);

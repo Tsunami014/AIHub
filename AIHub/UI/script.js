@@ -554,6 +554,9 @@ function findConvs() {
             data.forEach(element => {
                 var parentDiv = copyTemplate('PrevChatBtn');
                 var button = parentDiv.firstElementChild;
+                if (window.location.pathname === '/chat/'+element[0]) {
+                    button.classList.add('thisChat')
+                }
                 button.onclick = function() {
                     window.location = '/chat/'+element[0];
                 }

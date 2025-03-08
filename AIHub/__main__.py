@@ -69,6 +69,8 @@ def getPFP(model):
         PFPCache[model] = (time.time(), None)
         return flask.jsonify({"status": "error", "message": str(e), "url": ""}), 400
     allImgs = re.findall('<img class="[^"]+" alt="" src="([^>]+)"/>', resp.text)
+    if allImgs == []:
+        return flask.jsonify({"status": "error", "message": f'No images found for url `{url}`!', "url": ""}), 500
     img = allImgs[0]
     PFPCache[model] = (time.time(), img)
     return flask.jsonify({'status': 'OK', 'url': img}), 200
