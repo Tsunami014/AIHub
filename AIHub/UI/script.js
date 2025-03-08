@@ -41,7 +41,7 @@ function formatText(elm, str) {
     safeText.split(/^\s*```/gm).forEach((val, idx)=>{
         var newVal;
         if (idx % 2 == 0) {
-            newVal = val
+            newVal = val.replace(/^\n/g, '')
                 .replaceAll(/^(\s*)&gt; (.+)$/gm, (_, spaces, content) => {
                     let margin = Math.floor(spaces.replace('\t', '    ').length / 2)*2;
                     return `<span class="quote" style="margin-left: ${margin}em;">${content}</span>`
@@ -103,7 +103,7 @@ function formatText(elm, str) {
         } else {
             const newlineIndex = val.indexOf('\n');
             let language = '';
-            let code = val;
+            let code = val.replace(/\n$/g, '');
             
             if (newlineIndex !== -1) {
                 language = val.slice(0, newlineIndex).trim();
@@ -727,6 +727,8 @@ class UITooltip extends HTMLElement {
         
         tooltipContainer.appendChild(this);
 
+        this._linkToElement();
+
         this._startAnchorObserver();
 
         this.hideTooltip();
@@ -790,6 +792,20 @@ class UITooltip extends HTMLElement {
         if (this._anchorObserver) {
             this._anchorObserver.disconnect();
             this._anchorObserver = null;
+        }
+    }
+    
+    _linkToElement() {
+        const linkedId = this.getAttribute("data-linked-id");
+        if (linkedId) {
+            const linkedElement = document.getElementById(linkedId);
+            if (linkedElement) {
+                Object.defineProperty(linkedElement, "tooltipText", {
+                    get: () => this.innerText,
+                    set: (val) => { this.innerText = val; },
+                    configurable: true
+                });
+            }
         }
     }
 

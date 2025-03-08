@@ -4,14 +4,18 @@ var PFPCache = {};
 async function getPfp(pfpElm, pfp) {
     if (!pfp) {
         pfpElm.firstElementChild.src = '';
-        pfpElm.lastElementChild.innerText = '';
+        requestAnimationFrame(()=>{
+            pfpElm.children[1].tooltipText = '';
+        });
         return;
     }
     var displTxt = pfp[0];
     if (pfp.length > 1) {
         displTxt += '\n'+pfp.slice(1).join('\n');
     }
-    pfpElm.lastElementChild.innerText = displTxt;
+    requestAnimationFrame(()=>{
+        pfpElm.children[1].tooltipText = displTxt;
+    });
     if (PFPCache[pfp]) {
         if (PFPCache[pfp] !== 'null') {
             pfpElm.firstElementChild.src = PFPCache[pfp];
@@ -41,8 +45,14 @@ function makeMessage(role, content, animate = true, pfp = '') {
         var pfpImg = document.createElement('img');
         pfpImg.classList.add('pfp');
         pfpElm.appendChild(pfpImg);
+
+        nid = 'Tooltip_'+Math.random()*100000000000000000;
+        var tooltipLnk = document.createElement('div');
+        tooltipLnk.id = nid;
+        pfpElm.appendChild(tooltipLnk);
         
         var pfpTooltip = document.createElement('ui-tooltip');
+        pfpTooltip.setAttribute('data-linked-id', nid);
         pfpElm.appendChild(pfpTooltip);
 
         getPfp(pfpElm, pfp);

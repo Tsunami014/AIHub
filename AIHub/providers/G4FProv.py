@@ -63,8 +63,20 @@ class G4FProvider(BaseProvider):
 
         if model == ['random']:
             hierachy = G4FProvider.getHierachy()
-            model = random.choice(hierachy)
-            model = [model[0], random.choice(model[1])]
+            alls = [[i[0],j] for i in hierachy for j in i[1]]
+            random.shuffle(alls)
+            for i in alls:
+                if '<*sep*>' in i[0]:
+                    i[0] = i[0][i[0].index('<*sep*>')+7:]
+                if '<*sep*>' in i[1]:
+                    i[1] = i[1][i[1].index('<*sep*>')+7:]
+                try:
+                    yield from G4FProvider.stream(i, conv, opts)
+                    return
+                except Exception:
+                    pass
+            yield format('ERROR: Every model tried errored! Sorry about that.', model, True)
+            return
         
         if model in (['best'], ['ANY', 'best']):
             mods = g4f.models._all_models
@@ -199,7 +211,7 @@ class G4FProvider(BaseProvider):
 """[:-1]
         firstBest = False
         if model == ['random']:
-            return 'You have selected a RANDOM model from GPT4Free!'
+            return 'You have selected a RANDOM model from GPT4Free! This tries every model in a random order until one works!'
         elif model == ['best']:
             return 'You have chosen GPT4Free\'s best option; which will try every option available until one works!'
         elif model[0] == 'ANY':
