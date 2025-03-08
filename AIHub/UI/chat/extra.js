@@ -414,15 +414,26 @@ async function editElm(elm) {
     const msgs = document.getElementById('messageBubbles');
     const idx = Array.prototype.indexOf.call(msgs.children, msg);
     const msgtxt = elm.parentElement.parentElement.firstElementChild;
-    const newDiv = document.createElement('div');
-    newDiv.innerText = CONV[idx-1].content;
-    newDiv.contentEditable = "true";
+    const txtArea = document.createElement('textarea');
+    function fixHei(event) {
+        txtArea.style.width = "100vw";
+        const parentWid = txtArea.parentElement.parentElement.clientWidth;
+        txtArea.style.width = "1px";
+        txtArea.style.whiteSpace = "pre";
+        txtArea.style.width = Math.min(txtArea.scrollWidth, parentWid) + "px";
+        txtArea.style.removeProperty('white-space');
+
+        txtArea.style.height = "1px";
+        txtArea.style.height = txtArea.scrollHeight + "px";
+    }
+    txtArea.oninput = fixHei;
+    txtArea.value = CONV[idx-1].content;
     msgtxt.innerHTML = '';
-    msgtxt.appendChild(newDiv);
+    msgtxt.appendChild(txtArea);
     const btnsDiv = document.createElement('div');
     [['yes', async function(){
         var newConv = CONV.slice()
-        newConv[idx-1].content = msgtxt.innerText;
+        newConv[idx-1].content = txtArea.value;
         const resp = await fetch('/api/v1/chat/'+ID, {
             method: 'PUT',
             headers: {
@@ -451,6 +462,7 @@ async function editElm(elm) {
         btnsDiv.appendChild(newBtn);
     })
     msgtxt.appendChild(btnsDiv);
+    requestAnimationFrame(()=>{ fixHei() });
 }
 
 async function onChatGo() {
