@@ -690,6 +690,7 @@ class UITooltip extends HTMLElement {
         this.anchor = null;
         this.alreadyAppended = false;
         this._observer = null;
+        this._anchorObserver = null;
     }
 
     connectedCallback() {
@@ -701,7 +702,6 @@ class UITooltip extends HTMLElement {
         }
 
         this._stopObserver();
-
 
         const tooltipContainer = document.getElementById('tooltips');
         if (!tooltipContainer) {
@@ -724,6 +724,8 @@ class UITooltip extends HTMLElement {
         
         tooltipContainer.appendChild(this);
 
+        this._startAnchorObserver();
+
         this.hideTooltip();
         requestAnimationFrame(this.updatePosition);
         
@@ -743,6 +745,7 @@ class UITooltip extends HTMLElement {
         window.removeEventListener("resize", this.updatePosition);
         this.alreadyAppended = false;
         this._stopObserver();
+        this._stopAnchorObserver();
     }
     
     _startObserver() {
@@ -764,6 +767,26 @@ class UITooltip extends HTMLElement {
         if (this._observer) {
             this._observer.disconnect();
             this._observer = null;
+        }
+    }
+
+    _startAnchorObserver() {
+        if (!this.anchor) return;
+        this._anchorObserver = new MutationObserver((mutations) => {
+            if (!document.body.contains(this.anchor)) {
+                if (this.parentNode) {
+                    this.parentNode.removeChild(this);
+                }
+                this._stopAnchorObserver();
+            }
+        });
+        this._anchorObserver.observe(document.body, { childList: true, subtree: true });
+    }
+
+    _stopAnchorObserver() {
+        if (this._anchorObserver) {
+            this._anchorObserver.disconnect();
+            this._anchorObserver = null;
         }
     }
 

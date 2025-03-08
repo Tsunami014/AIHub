@@ -408,7 +408,7 @@ function endEdit(elm, idx) {
     formatText(newSpan, CONV[idx-1].content);
     elm.appendChild(newSpan);
 }
-async function editElm(elm) {
+async function editElm(elm, runAft = true) {
     const ID = this.location.pathname.split('/')[2];
     const msg = elm.parentElement.parentElement.parentElement
     const msgs = document.getElementById('messageBubbles');
@@ -452,7 +452,9 @@ async function editElm(elm) {
         CONV = json.data.messages;
         endEdit(msgtxt, idx);
         await delElm(elm, false, 1);
-        await startAI();
+        if (runAft) {
+            await startAI();
+        }
     }], 
         ['no', function(){ endEdit(msgtxt, idx)} ]].forEach(val => {
         let newBtn = document.createElement('button');
@@ -526,7 +528,7 @@ function fix_hei() {
     document.getElementById('spacer').style.height = hei + 'px';
 }
 
-requestAnimationFrame(()=>{
+document.addEventListener("DOMContentLoaded", function() {
     const mc = document.getElementById('mainCentre');
     insertTemplate(mc, 'chatContainer');
     unuseTemplate('AIchatButtons');
@@ -546,10 +548,7 @@ requestAnimationFrame(()=>{
         fix_hei();
     });
     
-
-    requestAnimationFrame(()=>{
-        mc.removeChild(mc.firstElementChild);
-        loadData();
-        fix_hei();
-    })
-})
+    mc.removeChild(mc.firstElementChild);
+    loadData();
+    fix_hei();
+});
