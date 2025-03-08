@@ -416,6 +416,7 @@ async function editElm(elm, runAft = true) {
     const msgtxt = elm.parentElement.parentElement.firstElementChild;
     const txtArea = document.createElement('textarea');
     function fixHei(event) {
+        const prevScroll = msgs.parentElement.scrollTop;
         txtArea.style.width = "100vw";
         const parentWid = txtArea.parentElement.parentElement.clientWidth;
         txtArea.style.width = "1px";
@@ -425,6 +426,7 @@ async function editElm(elm, runAft = true) {
 
         txtArea.style.height = "1px";
         txtArea.style.height = txtArea.scrollHeight + "px";
+        msgs.parentElement.scrollTop = prevScroll;
     }
     txtArea.oninput = fixHei;
     txtArea.value = CONV[idx-1].content;
